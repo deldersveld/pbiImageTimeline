@@ -559,6 +559,7 @@ var powerbi;
                 var dataPointSettings = (function () {
                     function dataPointSettings() {
                         this.defaultColor = "#01B8AA";
+                        this.dateDisplay = "%Y-%d-%m";
                     }
                     return dataPointSettings;
                 }());
@@ -666,6 +667,7 @@ var powerbi;
                         console.log('host', this.host);
                         var selectionManager = this.selectionManager;
                         var optionColor = this.settings.dataPoint.defaultColor;
+                        var optionDateDisplay = this.settings.dataPoint.dateDisplay;
                         var margin = [10, 75, 10, 75]; //top right bottom left
                         var w = options.viewport.width - margin[1] - margin[3];
                         var h = options.viewport.height - margin[0] - margin[2];
@@ -674,13 +676,15 @@ var powerbi;
                         var radius = 40;
                         var transitionRadius = radius + 5;
                         var viewModel = visualTransform(options, this.host);
-                        console.log('ViewModel', viewModel);
+                        //console.log('ViewModel', viewModel);
                         var sequenceMin = d3.min(viewModel.timelineDataPoints.map(function (d) { return new Date(d.sequence); }));
-                        console.log("sequenceMin: ", sequenceMin);
+                        //console.log("sequenceMin: ", sequenceMin);
                         var sequenceMax = d3.max(viewModel.timelineDataPoints.map(function (d) { return new Date(d.sequence); }));
-                        console.log("sequenceMax: ", sequenceMax);
-                        var measureMax = d3.max(viewModel.timelineDataPoints.map(function (d) { return new Date(d.measure); }));
-                        console.log("measureMax: ", measureMax);
+                        //console.log("sequenceMax: ", sequenceMax);
+                        var measureMin = d3.min(viewModel.timelineDataPoints.map(function (d) { return d.measure; }));
+                        //console.log("measureMin: ", measureMin);
+                        var measureMax = d3.max(viewModel.timelineDataPoints.map(function (d) { return d.measure; }));
+                        //console.log("measureMax: ", measureMax);
                         this.container
                             .attr("height", options.viewport.height)
                             .attr("width", options.viewport.width);
@@ -697,10 +701,13 @@ var powerbi;
                             .scale(x)
                             .orient("top")
                             .tickSize(10, 0)
-                            .tickFormat(d3.time.format("%Y"));
+                            .tickFormat(d3.time.format(optionDateDisplay));
                         this.axis
                             .attr("class", "axis")
                             .call(xAxis);
+                        var imageScale = d3.scale.linear()
+                            .domain([measureMin, measureMax])
+                            .range([35, 70]);
                         var brushArea = this.brushArea;
                         brushArea
                             .attr("transform", "translate(" + margin[3] + "," + (margin[0]) + ")")
@@ -778,16 +785,16 @@ var powerbi;
                                 .attr("class", "custom-image")
                                 .attr("x", function (d) { return x1(new Date(d.sequence)); })
                                 .attr("y", brushHeight + transitionRadius)
-                                .attr("transform", "translate(-35,-35)")
-                                .attr("height", 70)
-                                .attr("width", 70)
+                                .attr("transform", function (d) { return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")"; })
+                                .attr("height", function (d) { return imageScale(d.measure); })
+                                .attr("width", function (d) { return imageScale(d.measure); })
                                 .attr("xlink:href", function (d) { return d.imageUrl; });
                             customImages.transition()
                                 .attr("x", function (d) { return x1(new Date(d.sequence)); })
                                 .attr("y", brushHeight + transitionRadius)
-                                .attr("transform", "translate(-35,-35)")
-                                .attr("height", 70)
-                                .attr("width", 70)
+                                .attr("transform", function (d) { return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")"; })
+                                .attr("height", function (d) { return imageScale(d.measure); })
+                                .attr("width", function (d) { return imageScale(d.measure); })
                                 .attr("xlink:href", function (d) { return d.imageUrl; });
                             customImages.exit().remove();
                             customImages.on('click', function (d) {
@@ -810,9 +817,9 @@ var powerbi;
                             });
                             customImages.on('mouseout', function (d) {
                                 d3.select(this)
-                                    .attr("transform", "translate(-35,-35)")
-                                    .attr("height", 70)
-                                    .attr("width", 70);
+                                    .attr("transform", function (d) { return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")"; })
+                                    .attr("height", function (d) { return imageScale(d.measure); })
+                                    .attr("width", function (d) { return imageScale(d.measure); });
                             });
                         }
                         ;
@@ -841,11 +848,11 @@ var powerbi;
     (function (visuals) {
         var plugins;
         (function (plugins) {
-            plugins.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE = {
-                name: 'timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE',
+            plugins.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE_DEBUG = {
+                name: 'timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE_DEBUG',
                 displayName: 'Image Timeline',
                 class: 'Visual',
-                version: '1.0.0',
+                version: '1.1.0',
                 apiVersion: '1.7.0',
                 create: function (options) { return new powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE.Visual(options); },
                 custom: true

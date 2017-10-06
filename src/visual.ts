@@ -135,6 +135,7 @@ module powerbi.extensibility.visual {
             let selectionManager = this.selectionManager;
 
             let optionColor = this.settings.dataPoint.defaultColor;
+            let optionDateDisplay = this.settings.dataPoint.dateDisplay;
 
             let margin = [10, 75, 10, 75]; //top right bottom left
             let w = options.viewport.width - margin[1] - margin[3];
@@ -145,16 +146,19 @@ module powerbi.extensibility.visual {
             let transitionRadius = radius + 5;
 
             let viewModel: TimelineViewModel = visualTransform(options, this.host);
-            console.log('ViewModel', viewModel);
+            //console.log('ViewModel', viewModel);
             
             let sequenceMin = d3.min(viewModel.timelineDataPoints.map(d=>new Date(d.sequence)));
-			console.log("sequenceMin: ", sequenceMin);
+			//console.log("sequenceMin: ", sequenceMin);
 			
             let sequenceMax = d3.max(viewModel.timelineDataPoints.map(d=>new Date(d.sequence)));
-            console.log("sequenceMax: ", sequenceMax);
+            //console.log("sequenceMax: ", sequenceMax);
 
-            let measureMax = d3.max(viewModel.timelineDataPoints.map(d=>new Date(d.measure)));
-            console.log("measureMax: ", measureMax);
+            let measureMin = d3.min(viewModel.timelineDataPoints.map(d=>d.measure));
+            //console.log("measureMin: ", measureMin);
+
+            let measureMax = d3.max(viewModel.timelineDataPoints.map(d=>d.measure));
+            //console.log("measureMax: ", measureMax);
 
             this.container
                 .attr("height", options.viewport.height)
@@ -176,11 +180,15 @@ module powerbi.extensibility.visual {
                 .scale(x)
                 .orient("top")
                 .tickSize(10, 0)
-                .tickFormat(d3.time.format("%Y"));
+                .tickFormat(d3.time.format(optionDateDisplay));
                 
             this.axis
 				.attr("class", "axis")
                 .call(xAxis);
+
+            let imageScale = d3.scale.linear()
+                .domain([measureMin, measureMax])
+                .range([35, 70]);
 
             let brushArea = this.brushArea;
             brushArea
@@ -274,17 +282,17 @@ module powerbi.extensibility.visual {
                     .attr("class", "custom-image")
                     .attr("x", function(d){return x1(new Date(d.sequence));})
                     .attr("y", brushHeight + transitionRadius)
-                    .attr("transform", "translate(-35,-35)")
-                    .attr("height", 70)
-                    .attr("width", 70)
+                    .attr("transform", function(d) {return "translate(-" + imageScale(d.measure)/2 + ",-" + imageScale(d.measure)/2 + ")";})
+                    .attr("height", function(d) {return imageScale(d.measure)})
+                    .attr("width", function(d) {return imageScale(d.measure)})
                     .attr("xlink:href", function(d) {return d.imageUrl});
 
                 customImages.transition()
                     .attr("x", function(d){return x1(new Date(d.sequence));})
                     .attr("y", brushHeight + transitionRadius)
-                    .attr("transform", "translate(-35,-35)")
-                    .attr("height", 70)
-                    .attr("width", 70)
+                    .attr("transform", function(d) {return "translate(-" + imageScale(d.measure)/2 + ",-" + imageScale(d.measure)/2 + ")";})
+                    .attr("height", function(d) {return imageScale(d.measure)})
+                    .attr("width", function(d) {return imageScale(d.measure)})
                     .attr("xlink:href", function(d) {return d.imageUrl});
 
                 customImages.exit().remove();
@@ -312,9 +320,9 @@ module powerbi.extensibility.visual {
 
                 customImages.on('mouseout', function(d) {
                     d3.select(this)
-                        .attr("transform", "translate(-35,-35)")
-                        .attr("height", 70)
-                        .attr("width", 70);
+                        .attr("transform", function(d) {return "translate(-" + imageScale(d.measure)/2 + ",-" + imageScale(d.measure)/2 + ")";})
+                        .attr("height", function(d) {return imageScale(d.measure)})
+                        .attr("width", function(d) {return imageScale(d.measure)});
                 });
             };
         }

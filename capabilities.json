@@ -34,6 +34,24 @@
                             }
                         }
                     }
+                },
+                "dateDisplay": {
+                    "displayName": "Date display",
+                    "type": {
+                        "enumeration": [
+                            {"value": "%Y", "displayName": "1999"},
+                            {"value": "%y", "displayName": "99"},
+                            {"value": "%b-%Y", "displayName": "Dec-1999"},
+                            {"value": "%b-%y", "displayName": "Dec-99"},
+                            {"value": "%B", "displayName": "December"},
+                            {"value": "%b", "displayName": "Dec"},
+                            {"value": "%m-%d-%Y", "displayName": "12-31-1999"},
+                            {"value": "%d-%m-%Y", "displayName": "31-12-1999"},
+                            {"value": "%Y-%d-%m", "displayName": "1999-12-31"},
+                            {"value": "%A", "displayName": "Friday"},
+                            {"value": "%a", "displayName": "Fri"}
+                        ]
+                    }
                 }
             }
         }

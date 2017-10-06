@@ -152,6 +152,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
             //console.log('Visual update', options);
 
             let selectionManager = this.selectionManager;
+            let host = this.host;
 
             let optionColor = this.settings.dataPoint.defaultColor;
             let optionDateDisplay = this.settings.dataPoint.dateDisplay;
@@ -225,7 +226,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
             let brush = d3.svg.brush()
                 .x(<any>x)
                 .extent(<any>[sequenceMin, sequenceMax])
-                .on("brush", draw);
+                .on("brush", function(){draw(host)});
 
             let brushRect = brushArea.append("g")
                 .attr("class", "brush")
@@ -242,7 +243,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
             let itemRects = main.append("g")
                 .attr("clip-path", "url(#clip)");
 
-            draw(this.host);
+            draw(host);
 
             function draw(host) {
                 let events;
@@ -271,27 +272,6 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                     .attr("x2", x1(sequenceMax));
 
                 timelineLine.exit().remove();
-
-                /*main.selectAll(".point").remove();
-                let timelineEvent = itemRects.selectAll("circle")
-                    .data(timelineEvents);
-
-                timelineEvent.enter().append("circle")
-                    .attr("class", "point")
-                    .attr("r", transitionRadius)
-                    .attr("cx", function(d){return x1(new Date(d.sequence));})
-                    .attr("cy", brushHeight + transitionRadius);
-                    //.attr("fill", function(d){return colorScale(d.category);})
-                    //.attr("stroke", function(d) { return colorScale(d.category); });
-                    //.style("fill", "steelblue")
-                    //.style("stroke", "gray");
-
-                timelineEvent.transition()
-                    .attr("r", radius)
-                    .attr("cx", function(d){return x1(new Date(d.sequence));})
-                    .attr("cy", brushHeight + transitionRadius);
-					
-                timelineEvent.exit().remove();*/
 
                 main.selectAll(".custom-image").remove();
                 let customImages = itemRects.selectAll("image")

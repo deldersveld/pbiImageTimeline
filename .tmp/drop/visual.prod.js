@@ -972,6 +972,7 @@ var powerbi;
                         this.settings = Visual.parseSettings(options && options.dataViews && options.dataViews[0]);
                         //console.log('Visual update', options);
                         var selectionManager = this.selectionManager;
+                        var host = this.host;
                         var optionColor = this.settings.dataPoint.defaultColor;
                         var optionDateDisplay = this.settings.dataPoint.dateDisplay;
                         var margin = [10, 75, 10, 75]; //top right bottom left
@@ -1028,7 +1029,7 @@ var powerbi;
                         var brush = d3.svg.brush()
                             .x(x)
                             .extent([sequenceMin, sequenceMax])
-                            .on("brush", draw);
+                            .on("brush", function () { draw(host); });
                         var brushRect = brushArea.append("g")
                             .attr("class", "brush")
                             .call(brush)
@@ -1042,7 +1043,7 @@ var powerbi;
                         brushRect.transition();
                         var itemRects = main.append("g")
                             .attr("clip-path", "url(#clip)");
-                        draw(this.host);
+                        draw(host);
                         function draw(host) {
                             var events;
                             var minExtent = new Date(brush.extent()[0]);
@@ -1064,26 +1065,6 @@ var powerbi;
                                 .attr("x1", x1(sequenceMin))
                                 .attr("x2", x1(sequenceMax));
                             timelineLine.exit().remove();
-                            /*main.selectAll(".point").remove();
-                            let timelineEvent = itemRects.selectAll("circle")
-                                .data(timelineEvents);
-            
-                            timelineEvent.enter().append("circle")
-                                .attr("class", "point")
-                                .attr("r", transitionRadius)
-                                .attr("cx", function(d){return x1(new Date(d.sequence));})
-                                .attr("cy", brushHeight + transitionRadius);
-                                //.attr("fill", function(d){return colorScale(d.category);})
-                                //.attr("stroke", function(d) { return colorScale(d.category); });
-                                //.style("fill", "steelblue")
-                                //.style("stroke", "gray");
-            
-                            timelineEvent.transition()
-                                .attr("r", radius)
-                                .attr("cx", function(d){return x1(new Date(d.sequence));})
-                                .attr("cy", brushHeight + transitionRadius);
-                                
-                            timelineEvent.exit().remove();*/
                             main.selectAll(".custom-image").remove();
                             var customImages = itemRects.selectAll("image")
                                 .data(timelineEvents);

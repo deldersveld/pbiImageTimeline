@@ -29,13 +29,16 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
 
     import DataViewValueColumnGroup = powerbi.DataViewValueColumnGroup;
     import DataRoleHelper = powerbi.extensibility.utils.dataview.DataRoleHelper;
+    import tooltip = powerbi.extensibility.utils.tooltip;
+    import TooltipEnabledDataPoint = powerbi.extensibility.utils.tooltip.TooltipEnabledDataPoint;
+    import TooltipEventArgs = powerbi.extensibility.utils.tooltip.TooltipEventArgs;
 
     interface TimelineDataPoint {
 		category: string;
 		sequence: string;
 		imageUrl: string;
         measure: number;
-		tooltipInfo: string[];
+		tooltips: VisualTooltipDataItem[];
 		selectionId: powerbi.visuals.ISelectionId;
     };
 
@@ -43,9 +46,9 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
 		timelineDataPoints: TimelineDataPoint[];
     }
     
-    function visualTransform(options: VisualUpdateOptions, host: IVisualHost): any {
+    function visualTransform(options: VisualUpdateOptions, host: IVisualHost, optionDateDisplay: string): any {
 		let dataViews = options.dataViews;
-		//console.log('visualTransform', dataViews);
+        //console.log('visualTransform', dataViews);
 		
 		let viewModel: TimelineViewModel = {
             timelineDataPoints: []
@@ -70,16 +73,33 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
 		let categoryIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "category");
 		let sequenceIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "sequence");
 		let imageUrlIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "imageUrl");
-		let measureIndex = DataRoleHelper.getMeasureIndexOfRole(grouped, "measure");
+        let measureIndex = DataRoleHelper.getMeasureIndexOfRole(grouped, "measure");
+        
+        let metadata = dataViews[0].metadata;
+        let categoryColumnName = metadata.columns.filter(c => c.roles["category"])[0].displayName;
+        let valueColumnName = metadata.columns.filter(c => c.roles["measure"])[0].displayName;
+
+        let dateFormat = d3.time.format(optionDateDisplay);
 		
 		for (let i = 0, len = categorical.categories[categoryIndex].values.length; i < len; i++) {
             
+            let sequenceDisplay = "";
+            sequenceDisplay = dateFormat(new Date(categorical.categories[sequenceIndex].values[i].toString()));
+
             tDataPoints.push({
                 category: categorical.categories[categoryIndex].values[i].toString(),
                 sequence:  categorical.categories[sequenceIndex].values[i].toString(),
                 imageUrl: categorical.categories[imageUrlIndex].values[i].toString(),
                 measure: parseFloat(categorical.values[measureIndex].values[i].toString()),
-                tooltipInfo: [],
+                tooltips: [{
+                                displayName: categoryColumnName,
+                                value: categorical.categories[categoryIndex].values[i].toString(),
+                                header: sequenceDisplay
+                            },
+                            {
+                                displayName: valueColumnName,
+                                value: categorical.values[measureIndex].values[i].toString()
+                            }],
                 selectionId: host.createSelectionIdBuilder().withCategory(category, i).createSelectionId()
             });
             
@@ -102,7 +122,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
         private selectionManager: ISelectionManager;
 
         constructor(options: VisualConstructorOptions) {
-            console.log('Visual constructor', options);
+            //console.log('Visual constructor', options);
             this.target = options.element;
             this.host = options.host;
             this.selectionManager = options.host.createSelectionManager();
@@ -129,8 +149,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
 
         public update(options: VisualUpdateOptions) {
             this.settings = Visual.parseSettings(options && options.dataViews && options.dataViews[0]);
-            console.log('Visual update', options);
-            console.log('host', this.host);
+            //console.log('Visual update', options);
 
             let selectionManager = this.selectionManager;
 
@@ -145,7 +164,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
             let radius = 40;
             let transitionRadius = radius + 5;
 
-            let viewModel: TimelineViewModel = visualTransform(options, this.host);
+            let viewModel: TimelineViewModel = visualTransform(options, this.host, optionDateDisplay);
             //console.log('ViewModel', viewModel);
             
             let sequenceMin = d3.min(viewModel.timelineDataPoints.map(d=>new Date(d.sequence)));
@@ -164,7 +183,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                 .attr("height", options.viewport.height)
                 .attr("width", options.viewport.width);
 
-            this.svg
+            let svg = this.svg
                 .attr("height", options.viewport.height)
                 .attr("width", options.viewport.width);
 
@@ -223,9 +242,9 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
             let itemRects = main.append("g")
                 .attr("clip-path", "url(#clip)");
 
-            draw();
+            draw(this.host);
 
-            function draw() {
+            function draw(host) {
                 let events;
                 let minExtent = new Date(brush.extent()[0]);
                 let maxExtent = new Date(brush.extent()[1]);
@@ -316,6 +335,17 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                         .attr("transform", "translate(-70,-70)")
                         .attr("height", 140)
                         .attr("width", 140);
+
+                    let mouse = d3.mouse(svg.node());
+                    let x = mouse[0];
+                    let y = mouse[1];
+
+                    host.tooltipService.show({
+                        dataItems: d.tooltips,
+                        identities: [d.selectionId],
+                        coordinates: [x, y],
+                        isTouchEvent: false
+                    });
                 });
 
                 customImages.on('mouseout', function(d) {
@@ -323,7 +353,26 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                         .attr("transform", function(d) {return "translate(-" + imageScale(d.measure)/2 + ",-" + imageScale(d.measure)/2 + ")";})
                         .attr("height", function(d) {return imageScale(d.measure)})
                         .attr("width", function(d) {return imageScale(d.measure)});
+
+                    host.tooltipService.hide({
+                        immediately: true,
+                        isTouchEvent: false
+                    });
                 });
+
+                customImages.on("mousemove", (d) => {
+                    let mouse = d3.mouse(svg.node());
+                    let x = mouse[0];
+                    let y = mouse[1];
+
+                    host.tooltipService.move({
+                        dataItems: d.tooltips,
+                        identities: [d.selectionId],
+                        coordinates: [x, y],
+                        isTouchEvent: false
+                    });
+                })
+                
             };
         }
 
@@ -338,6 +387,14 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
          */
         public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstance[] | VisualObjectInstanceEnumerationObject {
             return VisualSettings.enumerateObjectInstances(this.settings || VisualSettings.getDefault(), options);
+        }
+
+        private getTooltipData(value: any): VisualTooltipDataItem[] {
+            //let language = getLocalizedString(this.locale, "LanguageKey");
+            return [{
+                displayName: "value.category",
+                value: value.value.toString()
+            }];
         }
     }
 }

@@ -1,0 +1,132 @@
+{
+    "dataRoles": [
+        {
+            "displayName": "Category",
+            "name": "category",
+            "kind": "Grouping"
+        },
+        {
+            "displayName": "Sequence/Date",
+            "name": "sequence",
+            "kind": "Grouping"
+        },
+        {
+            "displayName": "Image URL",
+            "name": "imageUrl",
+            "kind": "Grouping"
+        },
+        {
+            "displayName": "Measure",
+            "name": "measure",
+            "kind": "Measure"
+        }
+    ],
+    "objects": {
+        "dataPoint": {
+            "displayName": "Data colors",
+            "properties": {
+                "defaultColor": {
+                    "displayName": "Default color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "showAllDataPoints": {
+                    "displayName": "Show all",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "fill": {
+                    "displayName": "Fill",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "fillRule": {
+                    "displayName": "Color saturation",
+                    "type": {
+                        "fill": {}
+                    }
+                },
+                 "fontSize": {
+                    "displayName": "Text Size",
+                    "type": {
+                        "formatting": {
+                            "fontSize": true
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "dataViewMappings": [
+        {
+            "conditions": [
+                {
+                    "category": {
+                        "min": 0,
+                        "max": 1
+                    },
+                    "sequence": {
+                        "min": 0,
+                        "max": 1
+                    },
+                    "imageUrl": {
+                        "min": 0,
+                        "max": 1
+                    },
+                    "measure": {
+                        "min": 0,
+                        "max": 1
+                    }
+                }
+            ],
+            "categorical": {
+                "categories": {
+                    "select": [
+						{
+                            "for": {
+                                "in": "category"
+                            }
+                        },
+                        {
+                            "bind": {
+                                "to": "sequence"
+                            }
+                        },
+                        {
+                            "bind": {
+                                "to": "imageUrl"
+                            }
+                        }
+					],
+					"dataReductionAlgorithm": {
+						"top": {
+							"count": 30000
+						}
+					}
+                },
+                "values": {
+                    "select": [
+                        {
+                            "bind": {
+                                "to": "measure"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ],"sorting": {
+        "default": {   }
+    }
+}

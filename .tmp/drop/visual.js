@@ -558,16 +558,7 @@ var powerbi;
                 timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE.VisualSettings = VisualSettings;
                 var dataPointSettings = (function () {
                     function dataPointSettings() {
-                        // Default color
-                        this.defaultColor = "#339922";
-                        // Show all
-                        this.showAllDataPoints = true;
-                        // Fill
-                        this.fill = "#339922";
-                        // Color saturation
-                        this.fillRule = "";
-                        // Text Size
-                        this.fontSize = 12;
+                        this.defaultColor = "#01B8AA";
                     }
                     return dataPointSettings;
                 }());

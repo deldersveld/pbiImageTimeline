@@ -33,16 +33,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
       }
 
     export class dataPointSettings {
-     // Default color
-      public defaultColor: string = "#339922";
-     // Show all
-      public showAllDataPoints: boolean = true;
-     // Fill
-      public fill: string = "#339922";
-     // Color saturation
-      public fillRule: string = "";
-     // Text Size
-      public fontSize: number = 12;
+      public defaultColor: string = "#01B8AA";
      }
 
 }

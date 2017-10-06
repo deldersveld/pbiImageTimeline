@@ -156,6 +156,7 @@ module powerbi.extensibility.visual {
 
             let optionColor = this.settings.dataPoint.defaultColor;
             let optionDateDisplay = this.settings.dataPoint.dateDisplay;
+            let optionMeasureResizesImage = this.settings.dataPoint.measureResizesImage;
 
             let margin = [10, 75, 10, 75]; //top right bottom left
             let w = options.viewport.width - margin[1] - margin[3];
@@ -281,17 +282,59 @@ module powerbi.extensibility.visual {
                     .attr("class", "custom-image")
                     .attr("x", function(d){return x1(new Date(d.sequence));})
                     .attr("y", brushHeight + transitionRadius)
-                    .attr("transform", function(d) {return "translate(-" + imageScale(d.measure)/2 + ",-" + imageScale(d.measure)/2 + ")";})
-                    .attr("height", function(d) {return imageScale(d.measure)})
-                    .attr("width", function(d) {return imageScale(d.measure)})
+                    .attr("transform", function(d) {
+                        if(optionMeasureResizesImage == true){
+                            return "translate(-" + imageScale(d.measure)/2 + ",-" + imageScale(d.measure)/2 + ")";
+                        }
+                        else{
+                            return "translate(-35,-35)"
+                        }
+                    })
+                    .attr("height", function(d) {
+                        if(optionMeasureResizesImage == true){
+                            return imageScale(d.measure);
+                        }
+                        else{
+                            return 70;
+                        }
+                    })
+                    .attr("width", function(d) {
+                        if(optionMeasureResizesImage == true){
+                            return imageScale(d.measure);
+                        }
+                        else{
+                            return 70;
+                        }
+                    })
                     .attr("xlink:href", function(d) {return d.imageUrl});
 
                 customImages.transition()
                     .attr("x", function(d){return x1(new Date(d.sequence));})
                     .attr("y", brushHeight + transitionRadius)
-                    .attr("transform", function(d) {return "translate(-" + imageScale(d.measure)/2 + ",-" + imageScale(d.measure)/2 + ")";})
-                    .attr("height", function(d) {return imageScale(d.measure)})
-                    .attr("width", function(d) {return imageScale(d.measure)})
+                    .attr("transform", function(d) {
+                        if(optionMeasureResizesImage == true){
+                            return "translate(-" + imageScale(d.measure)/2 + ",-" + imageScale(d.measure)/2 + ")";
+                        }
+                        else{
+                            return "translate(-35,-35)"
+                        }
+                    })
+                    .attr("height", function(d) {
+                        if(optionMeasureResizesImage == true){
+                            return imageScale(d.measure);
+                        }
+                        else{
+                            return 70;
+                        }
+                    })
+                    .attr("width", function(d) {
+                        if(optionMeasureResizesImage == true){
+                            return imageScale(d.measure);
+                        }
+                        else{
+                            return 70;
+                        }
+                    })
                     .attr("xlink:href", function(d) {return d.imageUrl});
 
                 customImages.exit().remove();
@@ -330,9 +373,30 @@ module powerbi.extensibility.visual {
 
                 customImages.on('mouseout', function(d) {
                     d3.select(this)
-                        .attr("transform", function(d) {return "translate(-" + imageScale(d.measure)/2 + ",-" + imageScale(d.measure)/2 + ")";})
-                        .attr("height", function(d) {return imageScale(d.measure)})
-                        .attr("width", function(d) {return imageScale(d.measure)});
+                        .attr("transform", function(d) {
+                            if(optionMeasureResizesImage == true){
+                                return "translate(-" + imageScale(d.measure)/2 + ",-" + imageScale(d.measure)/2 + ")";
+                            }
+                            else{
+                                return "translate(-35,-35)"
+                            }
+                        })
+                        .attr("height", function(d) {
+                            if(optionMeasureResizesImage == true){
+                                return imageScale(d.measure);
+                            }
+                            else{
+                                return 70;
+                            }
+                        })
+                        .attr("width", function(d) {
+                            if(optionMeasureResizesImage == true){
+                                return imageScale(d.measure);
+                            }
+                            else{
+                                return 70;
+                            }
+                        });
 
                     host.tooltipService.hide({
                         immediately: true,
@@ -369,12 +433,5 @@ module powerbi.extensibility.visual {
             return VisualSettings.enumerateObjectInstances(this.settings || VisualSettings.getDefault(), options);
         }
 
-        private getTooltipData(value: any): VisualTooltipDataItem[] {
-            //let language = getLocalizedString(this.locale, "LanguageKey");
-            return [{
-                displayName: "value.category",
-                value: value.value.toString()
-            }];
-        }
     }
 }

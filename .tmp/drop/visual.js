@@ -853,6 +853,7 @@ var powerbi;
                     function dataPointSettings() {
                         this.defaultColor = "#01B8AA";
                         this.dateDisplay = "%Y-%d-%m";
+                        this.measureResizesImage = false;
                     }
                     return dataPointSettings;
                 }());
@@ -975,6 +976,7 @@ var powerbi;
                         var host = this.host;
                         var optionColor = this.settings.dataPoint.defaultColor;
                         var optionDateDisplay = this.settings.dataPoint.dateDisplay;
+                        var optionMeasureResizesImage = this.settings.dataPoint.measureResizesImage;
                         var margin = [10, 75, 10, 75]; //top right bottom left
                         var w = options.viewport.width - margin[1] - margin[3];
                         var h = options.viewport.height - margin[0] - margin[2];
@@ -1072,16 +1074,58 @@ var powerbi;
                                 .attr("class", "custom-image")
                                 .attr("x", function (d) { return x1(new Date(d.sequence)); })
                                 .attr("y", brushHeight + transitionRadius)
-                                .attr("transform", function (d) { return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")"; })
-                                .attr("height", function (d) { return imageScale(d.measure); })
-                                .attr("width", function (d) { return imageScale(d.measure); })
+                                .attr("transform", function (d) {
+                                if (optionMeasureResizesImage == true) {
+                                    return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")";
+                                }
+                                else {
+                                    return "translate(-35,-35)";
+                                }
+                            })
+                                .attr("height", function (d) {
+                                if (optionMeasureResizesImage == true) {
+                                    return imageScale(d.measure);
+                                }
+                                else {
+                                    return 70;
+                                }
+                            })
+                                .attr("width", function (d) {
+                                if (optionMeasureResizesImage == true) {
+                                    return imageScale(d.measure);
+                                }
+                                else {
+                                    return 70;
+                                }
+                            })
                                 .attr("xlink:href", function (d) { return d.imageUrl; });
                             customImages.transition()
                                 .attr("x", function (d) { return x1(new Date(d.sequence)); })
                                 .attr("y", brushHeight + transitionRadius)
-                                .attr("transform", function (d) { return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")"; })
-                                .attr("height", function (d) { return imageScale(d.measure); })
-                                .attr("width", function (d) { return imageScale(d.measure); })
+                                .attr("transform", function (d) {
+                                if (optionMeasureResizesImage == true) {
+                                    return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")";
+                                }
+                                else {
+                                    return "translate(-35,-35)";
+                                }
+                            })
+                                .attr("height", function (d) {
+                                if (optionMeasureResizesImage == true) {
+                                    return imageScale(d.measure);
+                                }
+                                else {
+                                    return 70;
+                                }
+                            })
+                                .attr("width", function (d) {
+                                if (optionMeasureResizesImage == true) {
+                                    return imageScale(d.measure);
+                                }
+                                else {
+                                    return 70;
+                                }
+                            })
                                 .attr("xlink:href", function (d) { return d.imageUrl; });
                             customImages.exit().remove();
                             customImages.on('click', function (d) {
@@ -1113,9 +1157,30 @@ var powerbi;
                             });
                             customImages.on('mouseout', function (d) {
                                 d3.select(this)
-                                    .attr("transform", function (d) { return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")"; })
-                                    .attr("height", function (d) { return imageScale(d.measure); })
-                                    .attr("width", function (d) { return imageScale(d.measure); });
+                                    .attr("transform", function (d) {
+                                    if (optionMeasureResizesImage == true) {
+                                        return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")";
+                                    }
+                                    else {
+                                        return "translate(-35,-35)";
+                                    }
+                                })
+                                    .attr("height", function (d) {
+                                    if (optionMeasureResizesImage == true) {
+                                        return imageScale(d.measure);
+                                    }
+                                    else {
+                                        return 70;
+                                    }
+                                })
+                                    .attr("width", function (d) {
+                                    if (optionMeasureResizesImage == true) {
+                                        return imageScale(d.measure);
+                                    }
+                                    else {
+                                        return 70;
+                                    }
+                                });
                                 host.tooltipService.hide({
                                     immediately: true,
                                     isTouchEvent: false
@@ -1145,13 +1210,6 @@ var powerbi;
                      */
                     Visual.prototype.enumerateObjectInstances = function (options) {
                         return timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE.VisualSettings.enumerateObjectInstances(this.settings || timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE.VisualSettings.getDefault(), options);
-                    };
-                    Visual.prototype.getTooltipData = function (value) {
-                        //let language = getLocalizedString(this.locale, "LanguageKey");
-                        return [{
-                                displayName: "value.category",
-                                value: value.value.toString()
-                            }];
                     };
                     return Visual;
                 }());

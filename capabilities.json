@@ -52,6 +52,12 @@
                             {"value": "%a", "displayName": "Fri"}
                         ]
                     }
+                },
+                "measureResizesImage": {
+                    "displayName": "Measure resizes image",
+                    "type": {
+                        "bool": true
+                    }
                 }
             }
         }

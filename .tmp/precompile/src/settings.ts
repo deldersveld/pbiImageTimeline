@@ -35,6 +35,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
     export class dataPointSettings {
       public defaultColor: string = "#01B8AA";
       public dateDisplay: string = "%Y-%d-%m";
+      public measureResizesImage: boolean = false;
      }
 
 }

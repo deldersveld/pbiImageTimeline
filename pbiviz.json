@@ -4,7 +4,7 @@
     "displayName": "Image Timeline",
     "guid": "timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE",
     "visualClassName": "Visual",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Horizontal timeline that displays selectable images",
     "supportUrl": "",
     "gitHubUrl": ""

@@ -48,7 +48,7 @@ module powerbi.extensibility.visual {
     
     function visualTransform(options: VisualUpdateOptions, host: IVisualHost, optionDateDisplay: string): any {
 		let dataViews = options.dataViews;
-        //console.log('visualTransform', dataViews);
+        console.log('visualTransform', dataViews);
 		
 		let viewModel: TimelineViewModel = {
             timelineDataPoints: []
@@ -59,6 +59,8 @@ module powerbi.extensibility.visual {
             || !dataViews[0].categorical
             || !dataViews[0].categorical.categories
             || !dataViews[0].categorical.categories[0].source
+            || !dataViews[0].categorical.categories[1].source
+            || !dataViews[0].categorical.categories[2].source
             || !dataViews[0].categorical.values)
             return viewModel;
 		
@@ -74,6 +76,10 @@ module powerbi.extensibility.visual {
 		let sequenceIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "sequence");
 		let imageUrlIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "imageUrl");
         let measureIndex = DataRoleHelper.getMeasureIndexOfRole(grouped, "measure");
+
+        if(categoryIndex == -1 || sequenceIndex == -1 || imageUrlIndex == -1){
+            console.log("missing data");
+        }
         
         let metadata = dataViews[0].metadata;
         let categoryColumnName = metadata.columns.filter(c => c.roles["category"])[0].displayName;
@@ -134,16 +140,16 @@ module powerbi.extensibility.visual {
                 .append("svg")
                 .attr("class", "timeline");
 
+            let mini = this.brushArea = this.svg
+                .append("g")
+                .attr("class", "mini");
+
             let main = this.main = this.svg
                 .append("g")
                 .attr("class", "main");
-
+                
             let axis = this.axis = main.append("g")
                 .attr("class", "axis");
-
-            let mini = this.brushArea = this.svg
-                .append("g")
-				.attr("class", "mini");
             
         }
 
@@ -167,7 +173,15 @@ module powerbi.extensibility.visual {
             let transitionRadius = radius + 5;
 
             let viewModel: TimelineViewModel = visualTransform(options, this.host, optionDateDisplay);
-            //console.log('ViewModel', viewModel);
+            console.log('ViewModel', viewModel);
+            if (!viewModel.timelineDataPoints
+                || !viewModel.timelineDataPoints[0].category
+                || !viewModel.timelineDataPoints[0].sequence
+                || !viewModel.timelineDataPoints[0].imageUrl){
+                console.log("missing data");
+                d3.select(".main").selectAll("*").remove();
+                return;
+            }
             
             let sequenceMin = d3.min(viewModel.timelineDataPoints.map(d=>new Date(d.sequence)));
 			//console.log("sequenceMin: ", sequenceMin);
@@ -237,7 +251,7 @@ module powerbi.extensibility.visual {
                 .attr("height", brushHeight - 10)
                 .style({
                     "fill": optionColor,
-                    "fill-opacity": ".5"
+                    "fill-opacity": "1"
                 });
             brushRect.transition();
 

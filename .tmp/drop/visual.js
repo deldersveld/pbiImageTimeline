@@ -900,7 +900,7 @@ var powerbi;
                 ;
                 function visualTransform(options, host, optionDateDisplay) {
                     var dataViews = options.dataViews;
-                    //console.log('visualTransform', dataViews);
+                    console.log('visualTransform', dataViews);
                     var viewModel = {
                         timelineDataPoints: []
                     };
@@ -909,6 +909,8 @@ var powerbi;
                         || !dataViews[0].categorical
                         || !dataViews[0].categorical.categories
                         || !dataViews[0].categorical.categories[0].source
+                        || !dataViews[0].categorical.categories[1].source
+                        || !dataViews[0].categorical.categories[2].source
                         || !dataViews[0].categorical.values)
                         return viewModel;
                     var categorical = dataViews[0].categorical;
@@ -921,6 +923,9 @@ var powerbi;
                     var sequenceIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "sequence");
                     var imageUrlIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "imageUrl");
                     var measureIndex = DataRoleHelper.getMeasureIndexOfRole(grouped, "measure");
+                    if (categoryIndex == -1 || sequenceIndex == -1 || imageUrlIndex == -1) {
+                        console.log("missing data");
+                    }
                     var metadata = dataViews[0].metadata;
                     var categoryColumnName = metadata.columns.filter(function (c) { return c.roles["category"]; })[0].displayName;
                     var valueColumnName = metadata.columns.filter(function (c) { return c.roles["measure"]; })[0].displayName;
@@ -960,14 +965,14 @@ var powerbi;
                         var svg = this.svg = container
                             .append("svg")
                             .attr("class", "timeline");
+                        var mini = this.brushArea = this.svg
+                            .append("g")
+                            .attr("class", "mini");
                         var main = this.main = this.svg
                             .append("g")
                             .attr("class", "main");
                         var axis = this.axis = main.append("g")
                             .attr("class", "axis");
-                        var mini = this.brushArea = this.svg
-                            .append("g")
-                            .attr("class", "mini");
                     }
                     Visual.prototype.update = function (options) {
                         this.settings = Visual.parseSettings(options && options.dataViews && options.dataViews[0]);
@@ -985,7 +990,15 @@ var powerbi;
                         var radius = 40;
                         var transitionRadius = radius + 5;
                         var viewModel = visualTransform(options, this.host, optionDateDisplay);
-                        //console.log('ViewModel', viewModel);
+                        console.log('ViewModel', viewModel);
+                        if (!viewModel.timelineDataPoints
+                            || !viewModel.timelineDataPoints[0].category
+                            || !viewModel.timelineDataPoints[0].sequence
+                            || !viewModel.timelineDataPoints[0].imageUrl) {
+                            console.log("missing data");
+                            d3.select(".main").selectAll("*").remove();
+                            return;
+                        }
                         var sequenceMin = d3.min(viewModel.timelineDataPoints.map(function (d) { return new Date(d.sequence); }));
                         //console.log("sequenceMin: ", sequenceMin);
                         var sequenceMax = d3.max(viewModel.timelineDataPoints.map(function (d) { return new Date(d.sequence); }));
@@ -1040,7 +1053,7 @@ var powerbi;
                             .attr("height", brushHeight - 10)
                             .style({
                             "fill": optionColor,
-                            "fill-opacity": ".5"
+                            "fill-opacity": "1"
                         });
                         brushRect.transition();
                         var itemRects = main.append("g")
@@ -1224,8 +1237,8 @@ var powerbi;
     (function (visuals) {
         var plugins;
         (function (plugins) {
-            plugins.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE = {
-                name: 'timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE',
+            plugins.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE_DEBUG = {
+                name: 'timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE_DEBUG',
                 displayName: 'Image Timeline',
                 class: 'Visual',
                 version: '1.1.0',

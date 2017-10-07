@@ -59,10 +59,10 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
             || !dataViews[0].categorical
             || !dataViews[0].categorical.categories
             || !dataViews[0].categorical.categories[0].source
-            || !dataViews[0].categorical.categories[1].source
-            || !dataViews[0].categorical.categories[2].source
-            || !dataViews[0].categorical.values)
-            return viewModel;
+            || !dataViews[0].categorical.values){
+                this.hideAll();
+                return viewModel;
+        }
 		
 		let categorical = dataViews[0].categorical;
         let category = categorical.categories[0];
@@ -77,9 +77,10 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
 		let imageUrlIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "imageUrl");
         let measureIndex = DataRoleHelper.getMeasureIndexOfRole(grouped, "measure");
 
-        if(categoryIndex == -1 || sequenceIndex == -1 || imageUrlIndex == -1){
-            console.log("missing data");
-        }
+        console.log(categoryIndex, sequenceIndex, imageUrlIndex, measureIndex);
+        //if(categoryIndex == -1 || sequenceIndex == -1 || imageUrlIndex == -1){
+        //    console.log("missing data");
+        //}
         
         let metadata = dataViews[0].metadata;
         let categoryColumnName = metadata.columns.filter(c => c.roles["category"])[0].displayName;
@@ -95,7 +96,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
             tDataPoints.push({
                 category: categorical.categories[categoryIndex].values[i].toString(),
                 sequence:  categorical.categories[sequenceIndex].values[i].toString(),
-                imageUrl: categorical.categories[imageUrlIndex].values[i].toString(),
+                imageUrl: imageUrlIndex == -1 ? null : categorical.categories[imageUrlIndex].values[i].toString(),
                 measure: parseFloat(categorical.values[measureIndex].values[i].toString()),
                 tooltips: [{
                                 displayName: categoryColumnName,
@@ -161,6 +162,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
             let host = this.host;
 
             let optionColor = this.settings.dataPoint.defaultColor;
+            let optionEventColor = this.settings.dataPoint.eventColor;
             let optionDateDisplay = this.settings.dataPoint.dateDisplay;
             let optionMeasureResizesImage = this.settings.dataPoint.measureResizesImage;
 
@@ -169,17 +171,16 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
             let h = options.viewport.height - margin[0] - margin[2];
             let brushHeight = 25;
             let mainHeight = h - brushHeight - 10;
-            let radius = 40;
+            let radius = 10;
             let transitionRadius = radius + 5;
+            let timelineHeight = 45;
 
             let viewModel: TimelineViewModel = visualTransform(options, this.host, optionDateDisplay);
             console.log('ViewModel', viewModel);
             if (!viewModel.timelineDataPoints
                 || !viewModel.timelineDataPoints[0].category
-                || !viewModel.timelineDataPoints[0].sequence
-                || !viewModel.timelineDataPoints[0].imageUrl){
+                || !viewModel.timelineDataPoints[0].sequence){
                 console.log("missing data");
-                d3.select(".main").selectAll("*").remove();
                 return;
             }
             
@@ -238,11 +239,11 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                 .attr("height", mainHeight);
 
             //height check - hide if images would be cut off on mouseover
-            if(options.viewport.height < margin[0] + brushHeight + transitionRadius * 3){
-                d3.select(".timeline").selectAll("*").style("visibility", "hidden");
+            if(options.viewport.height < margin[0] + brushHeight + timelineHeight * 3){
+                this.hideAll();
             } 
             else{
-                d3.select(".timeline").selectAll("*").style("visibility", "visible");
+                this.showAll();
             }
             
 			d3.select(".brush").remove(); 
@@ -286,9 +287,9 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                 timelineLine.enter().append("svg:line")
                     .attr("class", "timelineLine")
                     .attr("x1", x1(sequenceMin))
-                    .attr("y1", brushHeight + transitionRadius)
+                    .attr("y1", brushHeight + timelineHeight)
                     .attr("x2", x1(sequenceMax))
-                    .attr("y2", brushHeight + transitionRadius);
+                    .attr("y2", brushHeight + timelineHeight);
                 
                 timelineLine.transition()
                     .attr("x1", x1(sequenceMin))
@@ -296,6 +297,27 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
 
                 timelineLine.exit().remove();
 
+                //fallback to points if no image URL specified
+                main.selectAll(".point").remove();
+                if(timelineEvents[0].imageUrl == null){
+                    let timelineEvent = itemRects.selectAll("circle")
+                        .data(timelineEvents);
+                    timelineEvent.enter().append("circle")
+                        .attr("class", "point")
+                        .attr("r", transitionRadius)
+                        .attr("cx", function(d){return x1(new Date(d.sequence));})
+                        .attr("cy", brushHeight + timelineHeight)
+                        .style("fill", optionEventColor);
+                    timelineEvent.transition()
+                        .attr("r", radius)
+                        .attr("cx", function(d){return x1(new Date(d.sequence));})
+                        .attr("cy", brushHeight + timelineHeight)
+                        .style("fill", optionEventColor);
+                        
+                    timelineEvent.exit().remove();
+                }
+
+                //custom images
                 main.selectAll(".custom-image").remove();
                 let customImages = itemRects.selectAll("image")
                     .data(timelineEvents);
@@ -303,7 +325,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                 customImages.enter().append("svg:image")
                     .attr("class", "custom-image")
                     .attr("x", function(d){return x1(new Date(d.sequence));})
-                    .attr("y", brushHeight + transitionRadius)
+                    .attr("y", brushHeight + timelineHeight)
                     .attr("transform", function(d) {
                         if(optionMeasureResizesImage == true){
                             return "translate(-" + imageScale(d.measure)/2 + ",-" + imageScale(d.measure)/2 + ")";
@@ -332,7 +354,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
 
                 customImages.transition()
                     .attr("x", function(d){return x1(new Date(d.sequence));})
-                    .attr("y", brushHeight + transitionRadius)
+                    .attr("y", brushHeight + timelineHeight)
                     .attr("transform", function(d) {
                         if(optionMeasureResizesImage == true){
                             return "translate(-" + imageScale(d.measure)/2 + ",-" + imageScale(d.measure)/2 + ")";
@@ -438,8 +460,16 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                         isTouchEvent: false
                     });
                 })
-                
+
             };
+        }
+
+        public hideAll(){
+            d3.select(".timeline").selectAll("*").style("visibility", "hidden");
+        }
+
+        public showAll(){
+            d3.select(".timeline").selectAll("*").style("visibility", "visible");
         }
 
         private static parseSettings(dataView: DataView): VisualSettings {

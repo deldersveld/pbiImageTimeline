@@ -852,6 +852,7 @@ var powerbi;
                 var dataPointSettings = (function () {
                     function dataPointSettings() {
                         this.defaultColor = "#01B8AA";
+                        this.eventColor = "#01B8AA";
                         this.dateDisplay = "%Y-%d-%m";
                         this.measureResizesImage = false;
                     }
@@ -909,10 +910,10 @@ var powerbi;
                         || !dataViews[0].categorical
                         || !dataViews[0].categorical.categories
                         || !dataViews[0].categorical.categories[0].source
-                        || !dataViews[0].categorical.categories[1].source
-                        || !dataViews[0].categorical.categories[2].source
-                        || !dataViews[0].categorical.values)
+                        || !dataViews[0].categorical.values) {
+                        this.hideAll();
                         return viewModel;
+                    }
                     var categorical = dataViews[0].categorical;
                     var category = categorical.categories[0];
                     var dataValue = categorical.values[0];
@@ -923,9 +924,10 @@ var powerbi;
                     var sequenceIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "sequence");
                     var imageUrlIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "imageUrl");
                     var measureIndex = DataRoleHelper.getMeasureIndexOfRole(grouped, "measure");
-                    if (categoryIndex == -1 || sequenceIndex == -1 || imageUrlIndex == -1) {
-                        console.log("missing data");
-                    }
+                    console.log(categoryIndex, sequenceIndex, imageUrlIndex, measureIndex);
+                    //if(categoryIndex == -1 || sequenceIndex == -1 || imageUrlIndex == -1){
+                    //    console.log("missing data");
+                    //}
                     var metadata = dataViews[0].metadata;
                     var categoryColumnName = metadata.columns.filter(function (c) { return c.roles["category"]; })[0].displayName;
                     var valueColumnName = metadata.columns.filter(function (c) { return c.roles["measure"]; })[0].displayName;
@@ -936,7 +938,7 @@ var powerbi;
                         tDataPoints.push({
                             category: categorical.categories[categoryIndex].values[i].toString(),
                             sequence: categorical.categories[sequenceIndex].values[i].toString(),
-                            imageUrl: categorical.categories[imageUrlIndex].values[i].toString(),
+                            imageUrl: imageUrlIndex == -1 ? null : categorical.categories[imageUrlIndex].values[i].toString(),
                             measure: parseFloat(categorical.values[measureIndex].values[i].toString()),
                             tooltips: [{
                                     displayName: categoryColumnName,
@@ -980,6 +982,7 @@ var powerbi;
                         var selectionManager = this.selectionManager;
                         var host = this.host;
                         var optionColor = this.settings.dataPoint.defaultColor;
+                        var optionEventColor = this.settings.dataPoint.eventColor;
                         var optionDateDisplay = this.settings.dataPoint.dateDisplay;
                         var optionMeasureResizesImage = this.settings.dataPoint.measureResizesImage;
                         var margin = [10, 75, 10, 75]; //top right bottom left
@@ -987,16 +990,15 @@ var powerbi;
                         var h = options.viewport.height - margin[0] - margin[2];
                         var brushHeight = 25;
                         var mainHeight = h - brushHeight - 10;
-                        var radius = 40;
+                        var radius = 10;
                         var transitionRadius = radius + 5;
+                        var timelineHeight = 45;
                         var viewModel = visualTransform(options, this.host, optionDateDisplay);
                         console.log('ViewModel', viewModel);
                         if (!viewModel.timelineDataPoints
                             || !viewModel.timelineDataPoints[0].category
-                            || !viewModel.timelineDataPoints[0].sequence
-                            || !viewModel.timelineDataPoints[0].imageUrl) {
+                            || !viewModel.timelineDataPoints[0].sequence) {
                             console.log("missing data");
-                            d3.select(".main").selectAll("*").remove();
                             return;
                         }
                         var sequenceMin = d3.min(viewModel.timelineDataPoints.map(function (d) { return new Date(d.sequence); }));
@@ -1041,11 +1043,11 @@ var powerbi;
                             .attr("width", w)
                             .attr("height", mainHeight);
                         //height check - hide if images would be cut off on mouseover
-                        if (options.viewport.height < margin[0] + brushHeight + transitionRadius * 3) {
-                            d3.select(".timeline").selectAll("*").style("visibility", "hidden");
+                        if (options.viewport.height < margin[0] + brushHeight + timelineHeight * 3) {
+                            this.hideAll();
                         }
                         else {
-                            d3.select(".timeline").selectAll("*").style("visibility", "visible");
+                            this.showAll();
                         }
                         d3.select(".brush").remove();
                         var brush = d3.svg.brush()
@@ -1080,20 +1082,39 @@ var powerbi;
                             timelineLine.enter().append("svg:line")
                                 .attr("class", "timelineLine")
                                 .attr("x1", x1(sequenceMin))
-                                .attr("y1", brushHeight + transitionRadius)
+                                .attr("y1", brushHeight + timelineHeight)
                                 .attr("x2", x1(sequenceMax))
-                                .attr("y2", brushHeight + transitionRadius);
+                                .attr("y2", brushHeight + timelineHeight);
                             timelineLine.transition()
                                 .attr("x1", x1(sequenceMin))
                                 .attr("x2", x1(sequenceMax));
                             timelineLine.exit().remove();
+                            //fallback to points if no image URL specified
+                            main.selectAll(".point").remove();
+                            if (timelineEvents[0].imageUrl == null) {
+                                var timelineEvent = itemRects.selectAll("circle")
+                                    .data(timelineEvents);
+                                timelineEvent.enter().append("circle")
+                                    .attr("class", "point")
+                                    .attr("r", transitionRadius)
+                                    .attr("cx", function (d) { return x1(new Date(d.sequence)); })
+                                    .attr("cy", brushHeight + timelineHeight)
+                                    .style("fill", optionEventColor);
+                                timelineEvent.transition()
+                                    .attr("r", radius)
+                                    .attr("cx", function (d) { return x1(new Date(d.sequence)); })
+                                    .attr("cy", brushHeight + timelineHeight)
+                                    .style("fill", optionEventColor);
+                                timelineEvent.exit().remove();
+                            }
+                            //custom images
                             main.selectAll(".custom-image").remove();
                             var customImages = itemRects.selectAll("image")
                                 .data(timelineEvents);
                             customImages.enter().append("svg:image")
                                 .attr("class", "custom-image")
                                 .attr("x", function (d) { return x1(new Date(d.sequence)); })
-                                .attr("y", brushHeight + transitionRadius)
+                                .attr("y", brushHeight + timelineHeight)
                                 .attr("transform", function (d) {
                                 if (optionMeasureResizesImage == true) {
                                     return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")";
@@ -1121,7 +1142,7 @@ var powerbi;
                                 .attr("xlink:href", function (d) { return d.imageUrl; });
                             customImages.transition()
                                 .attr("x", function (d) { return x1(new Date(d.sequence)); })
-                                .attr("y", brushHeight + transitionRadius)
+                                .attr("y", brushHeight + timelineHeight)
                                 .attr("transform", function (d) {
                                 if (optionMeasureResizesImage == true) {
                                     return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")";
@@ -1220,6 +1241,12 @@ var powerbi;
                         }
                         ;
                     };
+                    Visual.prototype.hideAll = function () {
+                        d3.select(".timeline").selectAll("*").style("visibility", "hidden");
+                    };
+                    Visual.prototype.showAll = function () {
+                        d3.select(".timeline").selectAll("*").style("visibility", "visible");
+                    };
                     Visual.parseSettings = function (dataView) {
                         return timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE.VisualSettings.parse(dataView);
                     };
@@ -1244,8 +1271,8 @@ var powerbi;
     (function (visuals) {
         var plugins;
         (function (plugins) {
-            plugins.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE = {
-                name: 'timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE',
+            plugins.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE_DEBUG = {
+                name: 'timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE_DEBUG',
                 displayName: 'Image Timeline',
                 class: 'Visual',
                 version: '1.1.0',

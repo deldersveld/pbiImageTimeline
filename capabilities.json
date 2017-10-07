@@ -35,6 +35,16 @@
                         }
                     }
                 },
+                "eventColor": {
+                    "displayName": "Event color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
                 "dateDisplay": {
                     "displayName": "Date display",
                     "type": {

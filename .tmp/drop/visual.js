@@ -1040,6 +1040,13 @@ var powerbi;
                             .attr("transform", "translate(" + margin[3] + "," + (margin[0] + brushHeight) + ")")
                             .attr("width", w)
                             .attr("height", mainHeight);
+                        //height check - hide if images would be cut off on mouseover
+                        if (options.viewport.height < margin[0] + brushHeight + transitionRadius * 3) {
+                            d3.select(".timeline").selectAll("*").style("visibility", "hidden");
+                        }
+                        else {
+                            d3.select(".timeline").selectAll("*").style("visibility", "visible");
+                        }
                         d3.select(".brush").remove();
                         var brush = d3.svg.brush()
                             .x(x)

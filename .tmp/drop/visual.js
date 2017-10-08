@@ -852,7 +852,7 @@ var powerbi;
                 var dataPointSettings = (function () {
                     function dataPointSettings() {
                         this.defaultColor = "#01B8AA";
-                        this.eventColor = "#01B8AA";
+                        this.eventColor = "#374649";
                         this.dateDisplay = "%Y-%d-%m";
                         this.measureResizesImage = false;
                     }
@@ -909,8 +909,7 @@ var powerbi;
                         || !dataViews[0]
                         || !dataViews[0].categorical
                         || !dataViews[0].categorical.categories
-                        || !dataViews[0].categorical.categories[0].source
-                        || !dataViews[0].categorical.values) {
+                        || !dataViews[0].categorical.categories[0].source) {
                         this.hideAll();
                         return viewModel;
                     }
@@ -955,12 +954,15 @@ var powerbi;
                                 imageCheck = imageValue.toString();
                             }
                         }
+                        //validate measure
+                        var measureCheck = 1;
+                        measureIndex == -1 ? measureCheck = 1 : measureCheck = parseFloat(categorical.values[measureIndex].values[i].toString());
                         //add data
                         tDataPoints.push({
                             category: categorical.categories[categoryIndex].values[i].toString(),
                             sequence: sequenceCheck,
                             imageUrl: imageCheck,
-                            measure: parseFloat(categorical.values[measureIndex].values[i].toString()),
+                            measure: measureCheck,
                             tooltips: [{
                                     displayName: categoryColumnName,
                                     value: categorical.categories[categoryIndex].values[i].toString(),
@@ -968,7 +970,7 @@ var powerbi;
                                 },
                                 {
                                     displayName: valueColumnName,
-                                    value: categorical.values[measureIndex].values[i].toString()
+                                    value: measureCheck.toString()
                                 }],
                             selectionId: host.createSelectionIdBuilder().withCategory(category, i).createSelectionId()
                         });
@@ -1013,7 +1015,7 @@ var powerbi;
                         var h = options.viewport.height - margin[0] - margin[2];
                         var brushHeight = 25;
                         var mainHeight = h - brushHeight - 10;
-                        var radius = 10;
+                        var radius = 5;
                         var transitionRadius = radius + 5;
                         var timelineHeight = 45;
                         var viewModel = visualTransform(options, this.host, optionDateDisplay);
@@ -1055,6 +1057,9 @@ var powerbi;
                         var imageScale = d3.scale.linear()
                             .domain([measureMin, measureMax])
                             .range([35, 70]);
+                        var pointScale = d3.scale.linear()
+                            .domain([measureMin, measureMax])
+                            .range([5, 15]);
                         var brushArea = this.brushArea;
                         brushArea
                             .attr("transform", "translate(" + margin[3] + "," + (margin[0]) + ")")
@@ -1124,7 +1129,14 @@ var powerbi;
                                     .attr("cy", brushHeight + timelineHeight)
                                     .style("fill", optionEventColor);
                                 timelineEvent.transition()
-                                    .attr("r", radius)
+                                    .attr("r", function (d) {
+                                    if (optionMeasureResizesImage == true) {
+                                        return pointScale(d.measure);
+                                    }
+                                    else {
+                                        return radius;
+                                    }
+                                })
                                     .attr("cx", function (d) { return x1(new Date(d.sequence)); })
                                     .attr("cy", brushHeight + timelineHeight)
                                     .style("fill", optionEventColor);
@@ -1294,8 +1306,8 @@ var powerbi;
     (function (visuals) {
         var plugins;
         (function (plugins) {
-            plugins.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE = {
-                name: 'timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE',
+            plugins.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE_DEBUG = {
+                name: 'timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE_DEBUG',
                 displayName: 'Image Timeline',
                 class: 'Visual',
                 version: '1.1.0',

@@ -58,8 +58,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
             || !dataViews[0]
             || !dataViews[0].categorical
             || !dataViews[0].categorical.categories
-            || !dataViews[0].categorical.categories[0].source
-            || !dataViews[0].categorical.values){
+            || !dataViews[0].categorical.categories[0].source){
                 this.hideAll();
                 return viewModel;
         }
@@ -115,12 +114,16 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                 }
             }
 
+            //validate measure
+            let measureCheck = 1;
+            measureIndex == -1 ? measureCheck = 1: measureCheck = parseFloat(categorical.values[measureIndex].values[i].toString());
+
             //add data
             tDataPoints.push({
                 category: categorical.categories[categoryIndex].values[i].toString(),
                 sequence:  sequenceCheck,
                 imageUrl: imageCheck,
-                measure: parseFloat(categorical.values[measureIndex].values[i].toString()),
+                measure: measureCheck,
                 tooltips: [{
                                 displayName: categoryColumnName,
                                 value: categorical.categories[categoryIndex].values[i].toString(),
@@ -128,7 +131,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                             },
                             {
                                 displayName: valueColumnName,
-                                value: categorical.values[measureIndex].values[i].toString()
+                                value: measureCheck.toString()
                             }],
                 selectionId: host.createSelectionIdBuilder().withCategory(category, i).createSelectionId()
             });
@@ -198,7 +201,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
             let h = options.viewport.height - margin[0] - margin[2];
             let brushHeight = 25;
             let mainHeight = h - brushHeight - 10;
-            let radius = 10;
+            let radius = 5;
             let transitionRadius = radius + 5;
             let timelineHeight = 45;
 
@@ -252,6 +255,10 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
             let imageScale = d3.scale.linear()
                 .domain([measureMin, measureMax])
                 .range([35, 70]);
+
+            let pointScale = d3.scale.linear()
+                .domain([measureMin, measureMax])
+                .range([5, 15]);
 
             let brushArea = this.brushArea;
             brushArea
@@ -336,7 +343,14 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                         .attr("cy", brushHeight + timelineHeight)
                         .style("fill", optionEventColor);
                     timelineEvent.transition()
-                        .attr("r", radius)
+                        .attr("r", function(d) {
+                            if(optionMeasureResizesImage == true){
+                                return pointScale(d.measure);
+                            }
+                            else{
+                                return radius;
+                            }
+                        })
                         .attr("cx", function(d){return x1(new Date(d.sequence));})
                         .attr("cy", brushHeight + timelineHeight)
                         .style("fill", optionEventColor);

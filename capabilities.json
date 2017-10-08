@@ -57,7 +57,7 @@
                             {"value": "%b", "displayName": "Dec"},
                             {"value": "%m-%d-%Y", "displayName": "12-31-1999"},
                             {"value": "%d-%m-%Y", "displayName": "31-12-1999"},
-                            {"value": "%Y-%d-%m", "displayName": "1999-12-31"},
+                            {"value": "%Y-%m-%d", "displayName": "1999-12-31"},
                             {"value": "%A", "displayName": "Friday"},
                             {"value": "%a", "displayName": "Fri"}
                         ]

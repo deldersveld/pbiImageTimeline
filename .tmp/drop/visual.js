@@ -925,20 +925,41 @@ var powerbi;
                     var imageUrlIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "imageUrl");
                     var measureIndex = DataRoleHelper.getMeasureIndexOfRole(grouped, "measure");
                     console.log(categoryIndex, sequenceIndex, imageUrlIndex, measureIndex);
-                    //if(categoryIndex == -1 || sequenceIndex == -1 || imageUrlIndex == -1){
-                    //    console.log("missing data");
-                    //}
                     var metadata = dataViews[0].metadata;
                     var categoryColumnName = metadata.columns.filter(function (c) { return c.roles["category"]; })[0].displayName;
                     var valueColumnName = metadata.columns.filter(function (c) { return c.roles["measure"]; })[0].displayName;
                     var dateFormat = d3.time.format(optionDateDisplay);
                     for (var i = 0, len = categorical.categories[categoryIndex].values.length; i < len; i++) {
                         var sequenceDisplay = "";
-                        sequenceDisplay = dateFormat(new Date(categorical.categories[sequenceIndex].values[i].toString()));
+                        //validate date sequence - -1 index value or bad value substitutes new Date()
+                        var sequenceCheck = new Date().toString();
+                        if (sequenceIndex >= 0) {
+                            var dateValidation = Date.parse(categorical.categories[sequenceIndex].values[i].toString());
+                            if (dateValidation.toString() != "NaN") {
+                                sequenceCheck = categorical.categories[sequenceIndex].values[i].toString();
+                                sequenceDisplay = dateFormat(new Date(categorical.categories[sequenceIndex].values[i].toString()));
+                            }
+                        }
+                        //validate image URL
+                        var imageCheck = null;
+                        var validate = false;
+                        if (imageUrlIndex == -1) {
+                            imageCheck = null;
+                        }
+                        else {
+                            var imageValue = categorical.categories[imageUrlIndex].values[i];
+                            if (imageValue.toString().slice(0, 5) != "http:") {
+                                imageCheck = null;
+                            }
+                            else {
+                                imageCheck = imageValue.toString();
+                            }
+                        }
+                        //add data
                         tDataPoints.push({
                             category: categorical.categories[categoryIndex].values[i].toString(),
-                            sequence: categorical.categories[sequenceIndex].values[i].toString(),
-                            imageUrl: imageUrlIndex == -1 ? null : categorical.categories[imageUrlIndex].values[i].toString(),
+                            sequence: sequenceCheck,
+                            imageUrl: imageCheck,
                             measure: parseFloat(categorical.values[measureIndex].values[i].toString()),
                             tooltips: [{
                                     displayName: categoryColumnName,
@@ -955,6 +976,8 @@ var powerbi;
                     return {
                         timelineDataPoints: tDataPoints
                     };
+                }
+                function validateImageUrl(field) {
                 }
                 var Visual = (function () {
                     function Visual(options) {

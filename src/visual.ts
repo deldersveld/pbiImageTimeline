@@ -78,25 +78,48 @@ module powerbi.extensibility.visual {
         let measureIndex = DataRoleHelper.getMeasureIndexOfRole(grouped, "measure");
 
         console.log(categoryIndex, sequenceIndex, imageUrlIndex, measureIndex);
-        //if(categoryIndex == -1 || sequenceIndex == -1 || imageUrlIndex == -1){
-        //    console.log("missing data");
-        //}
         
         let metadata = dataViews[0].metadata;
         let categoryColumnName = metadata.columns.filter(c => c.roles["category"])[0].displayName;
         let valueColumnName = metadata.columns.filter(c => c.roles["measure"])[0].displayName;
 
         let dateFormat = d3.time.format(optionDateDisplay);
-		
+        
 		for (let i = 0, len = categorical.categories[categoryIndex].values.length; i < len; i++) {
             
             let sequenceDisplay = "";
-            sequenceDisplay = dateFormat(new Date(categorical.categories[sequenceIndex].values[i].toString()));
 
+            //validate date sequence - -1 index value or bad value substitutes new Date()
+            let sequenceCheck = new Date().toString();
+            if(sequenceIndex >= 0){
+                let dateValidation = Date.parse(categorical.categories[sequenceIndex].values[i].toString());
+                if (dateValidation.toString() != "NaN"){
+                    sequenceCheck = categorical.categories[sequenceIndex].values[i].toString();
+                    sequenceDisplay = dateFormat(new Date(categorical.categories[sequenceIndex].values[i].toString()));
+                }
+            }
+
+            //validate image URL
+            let imageCheck = null;
+            let validate = false;
+            if(imageUrlIndex == -1){
+                imageCheck = null;
+            }
+            else{
+                let imageValue = categorical.categories[imageUrlIndex].values[i];
+                if(imageValue.toString().slice(0,5) != "http:"){
+                    imageCheck = null;
+                }
+                else{
+                    imageCheck = imageValue.toString();
+                }
+            }
+
+            //add data
             tDataPoints.push({
                 category: categorical.categories[categoryIndex].values[i].toString(),
-                sequence:  categorical.categories[sequenceIndex].values[i].toString(),
-                imageUrl: imageUrlIndex == -1 ? null : categorical.categories[imageUrlIndex].values[i].toString(),
+                sequence:  sequenceCheck,
+                imageUrl: imageCheck,
                 measure: parseFloat(categorical.values[measureIndex].values[i].toString()),
                 tooltips: [{
                                 displayName: categoryColumnName,
@@ -115,7 +138,11 @@ module powerbi.extensibility.visual {
 		return {
             timelineDataPoints: tDataPoints
         };
-	}
+    }
+    
+    function validateImageUrl(field){
+        
+    }
 
     export class Visual implements IVisual {
         private target: HTMLElement;

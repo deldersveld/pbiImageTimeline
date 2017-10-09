@@ -851,8 +851,8 @@ var powerbi;
                 timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE.VisualSettings = VisualSettings;
                 var dataPointSettings = (function () {
                     function dataPointSettings() {
-                        this.defaultColor = "#01B8AA";
-                        this.eventColor = "#374649";
+                        this.defaultColor = "#E6E6E6";
+                        this.eventColor = "#01B8AA";
                         this.dateDisplay = "%Y-%m-%d";
                         this.measureResizesImage = false;
                     }
@@ -1013,7 +1013,7 @@ var powerbi;
                         var margin = [10, 75, 10, 75]; //top right bottom left
                         var w = options.viewport.width - margin[1] - margin[3];
                         var h = options.viewport.height - margin[0] - margin[2];
-                        var brushHeight = 30;
+                        var brushHeight = 35;
                         var mainHeight = h - brushHeight - 10;
                         var radius = 7;
                         var transitionRadius = radius + 5;
@@ -1086,7 +1086,7 @@ var powerbi;
                             .attr("width", w)
                             .attr("height", mainHeight);
                         //height check - hide if images would be cut off on mouseover
-                        if (options.viewport.height < margin[0] + brushHeight + timelineHeight * 3) {
+                        if (options.viewport.height < margin[0] + brushHeight + timelineHeight * 3 - 6) {
                             this.hideAll();
                         }
                         else {

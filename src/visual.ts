@@ -199,7 +199,7 @@ module powerbi.extensibility.visual {
             let margin = [10, 75, 10, 75]; //top right bottom left
             let w = options.viewport.width - margin[1] - margin[3];
             let h = options.viewport.height - margin[0] - margin[2];
-            let brushHeight = 30;
+            let brushHeight = 35;
             let mainHeight = h - brushHeight - 10;
             let radius = 7;
             let transitionRadius = radius + 5;
@@ -289,7 +289,7 @@ module powerbi.extensibility.visual {
                 .attr("height", mainHeight);
 
             //height check - hide if images would be cut off on mouseover
-            if(options.viewport.height < margin[0] + brushHeight + timelineHeight * 3){
+            if(options.viewport.height < margin[0] + brushHeight + timelineHeight * 3 - 6){
                 this.hideAll();
             } 
             else{

@@ -33,8 +33,8 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
       }
 
     export class dataPointSettings {
-      public defaultColor: string = "#01B8AA";
-      public eventColor: string = "#374649";
+      public defaultColor: string = "#E6E6E6";
+      public eventColor: string = "#01B8AA";
       public dateDisplay: string = "%Y-%m-%d";
       public measureResizesImage: boolean = false;
      }

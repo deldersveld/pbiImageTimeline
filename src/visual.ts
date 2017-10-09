@@ -356,7 +356,14 @@ module powerbi.extensibility.visual {
                         .data(timelineEvents);
                     timelineEvent.enter().append("circle")
                         .attr("class", "point")
-                        .attr("r", transitionRadius)
+                        .attr("r", function(d) {
+                            if(optionMeasureResizesImage == true){
+                                return pointScale(d.measure);
+                            }
+                            else{
+                                return transitionRadius;
+                            }
+                        })
                         .attr("cx", function(d){return x1(new Date(d.sequence));})
                         .attr("cy", brushHeight + timelineHeight)
                         .style("fill", optionEventColor);
@@ -484,7 +491,14 @@ module powerbi.extensibility.visual {
                 timelineEvent.on('mouseout', function(d) {
                     if(timelineEvents[0].imageUrl == null){
                         d3.select(this)
-                            .attr("r", radius);
+                            .attr("r", function(d) {
+                                if(optionMeasureResizesImage == true){
+                                    return pointScale(d.measure);
+                                }
+                                else{
+                                    return radius;
+                                }
+                            });
                     }
                     else{
                         d3.select(this)

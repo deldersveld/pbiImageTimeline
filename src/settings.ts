@@ -35,7 +35,7 @@ module powerbi.extensibility.visual {
     export class dataPointSettings {
       public defaultColor: string = "#01B8AA";
       public eventColor: string = "#374649";
-      public dateDisplay: string = "%Y-%d-%m";
+      public dateDisplay: string = "%Y-%m-%d";
       public measureResizesImage: boolean = false;
      }
 

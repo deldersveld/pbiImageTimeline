@@ -853,7 +853,7 @@ var powerbi;
                     function dataPointSettings() {
                         this.defaultColor = "#01B8AA";
                         this.eventColor = "#374649";
-                        this.dateDisplay = "%Y-%d-%m";
+                        this.dateDisplay = "%Y-%m-%d";
                         this.measureResizesImage = false;
                     }
                     return dataPointSettings;
@@ -901,7 +901,7 @@ var powerbi;
                 ;
                 function visualTransform(options, host, optionDateDisplay) {
                     var dataViews = options.dataViews;
-                    console.log('visualTransform', dataViews);
+                    //console.log('visualTransform', dataViews);
                     var viewModel = {
                         timelineDataPoints: []
                     };
@@ -923,7 +923,7 @@ var powerbi;
                     var sequenceIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "sequence");
                     var imageUrlIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "imageUrl");
                     var measureIndex = DataRoleHelper.getMeasureIndexOfRole(grouped, "measure");
-                    console.log(categoryIndex, sequenceIndex, imageUrlIndex, measureIndex);
+                    //console.log(categoryIndex, sequenceIndex, imageUrlIndex, measureIndex);
                     var metadata = dataViews[0].metadata;
                     var categoryColumnName = metadata.columns.filter(function (c) { return c.roles["category"]; })[0].displayName;
                     var valueColumnName = metadata.columns.filter(function (c) { return c.roles["measure"]; })[0].displayName;
@@ -1013,13 +1013,27 @@ var powerbi;
                         var margin = [10, 75, 10, 75]; //top right bottom left
                         var w = options.viewport.width - margin[1] - margin[3];
                         var h = options.viewport.height - margin[0] - margin[2];
-                        var brushHeight = 25;
+                        var brushHeight = 30;
                         var mainHeight = h - brushHeight - 10;
-                        var radius = 5;
+                        var radius = 7;
                         var transitionRadius = radius + 5;
                         var timelineHeight = 45;
+                        //ticks
+                        var tickCount = 10;
+                        if (options.viewport.width > 700) {
+                            tickCount = options.viewport.width / 125;
+                        }
+                        else if (options.viewport.width > 500) {
+                            tickCount = options.viewport.width / 150;
+                        }
+                        else if (options.viewport.width > 300) {
+                            tickCount = options.viewport.width / 175;
+                        }
+                        else {
+                            tickCount = options.viewport.width / 300;
+                        }
                         var viewModel = visualTransform(options, this.host, optionDateDisplay);
-                        console.log('ViewModel', viewModel);
+                        //console.log('ViewModel', viewModel);
                         if (!viewModel.timelineDataPoints
                             || !viewModel.timelineDataPoints[0].category
                             || !viewModel.timelineDataPoints[0].sequence) {
@@ -1049,6 +1063,7 @@ var powerbi;
                         var xAxis = d3.svg.axis()
                             .scale(x)
                             .orient("top")
+                            .ticks(tickCount)
                             .tickSize(10, 0)
                             .tickFormat(d3.time.format(optionDateDisplay));
                         this.axis
@@ -1117,8 +1132,9 @@ var powerbi;
                                 .attr("x1", x1(sequenceMin))
                                 .attr("x2", x1(sequenceMax));
                             timelineLine.exit().remove();
-                            //fallback to points if no image URL specified
                             main.selectAll(".point").remove();
+                            main.selectAll(".custom-image").remove();
+                            //fallback to points if no image URL specified
                             if (timelineEvents[0].imageUrl == null) {
                                 var timelineEvent = itemRects.selectAll("circle")
                                     .data(timelineEvents);
@@ -1142,97 +1158,13 @@ var powerbi;
                                     .style("fill", optionEventColor);
                                 timelineEvent.exit().remove();
                             }
-                            //custom images
-                            main.selectAll(".custom-image").remove();
-                            var customImages = itemRects.selectAll("image")
-                                .data(timelineEvents);
-                            customImages.enter().append("svg:image")
-                                .attr("class", "custom-image")
-                                .attr("x", function (d) { return x1(new Date(d.sequence)); })
-                                .attr("y", brushHeight + timelineHeight)
-                                .attr("transform", function (d) {
-                                if (optionMeasureResizesImage == true) {
-                                    return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")";
-                                }
-                                else {
-                                    return "translate(-35,-35)";
-                                }
-                            })
-                                .attr("height", function (d) {
-                                if (optionMeasureResizesImage == true) {
-                                    return imageScale(d.measure);
-                                }
-                                else {
-                                    return 70;
-                                }
-                            })
-                                .attr("width", function (d) {
-                                if (optionMeasureResizesImage == true) {
-                                    return imageScale(d.measure);
-                                }
-                                else {
-                                    return 70;
-                                }
-                            })
-                                .attr("xlink:href", function (d) { return d.imageUrl; });
-                            customImages.transition()
-                                .attr("x", function (d) { return x1(new Date(d.sequence)); })
-                                .attr("y", brushHeight + timelineHeight)
-                                .attr("transform", function (d) {
-                                if (optionMeasureResizesImage == true) {
-                                    return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")";
-                                }
-                                else {
-                                    return "translate(-35,-35)";
-                                }
-                            })
-                                .attr("height", function (d) {
-                                if (optionMeasureResizesImage == true) {
-                                    return imageScale(d.measure);
-                                }
-                                else {
-                                    return 70;
-                                }
-                            })
-                                .attr("width", function (d) {
-                                if (optionMeasureResizesImage == true) {
-                                    return imageScale(d.measure);
-                                }
-                                else {
-                                    return 70;
-                                }
-                            })
-                                .attr("xlink:href", function (d) { return d.imageUrl; });
-                            customImages.exit().remove();
-                            customImages.on('click', function (d) {
-                                var _this = this;
-                                selectionManager.select(d.selectionId).then(function (ids) {
-                                    customImages.attr({
-                                        'opacity': ids.length > 0 ? 0.2 : 1
-                                    });
-                                    d3.select(_this).attr({
-                                        'opacity': 1
-                                    });
-                                });
-                                d3.event.stopPropagation();
-                            });
-                            customImages.on('mouseover', function (d) {
-                                d3.select(this)
-                                    .attr("transform", "translate(-70,-70)")
-                                    .attr("height", 140)
-                                    .attr("width", 140);
-                                var mouse = d3.mouse(svg.node());
-                                var x = mouse[0];
-                                var y = mouse[1];
-                                host.tooltipService.show({
-                                    dataItems: d.tooltips,
-                                    identities: [d.selectionId],
-                                    coordinates: [x, y],
-                                    isTouchEvent: false
-                                });
-                            });
-                            customImages.on('mouseout', function (d) {
-                                d3.select(this)
+                            else {
+                                var timelineEvent = itemRects.selectAll("image")
+                                    .data(timelineEvents);
+                                timelineEvent.enter().append("svg:image")
+                                    .attr("class", "custom-image")
+                                    .attr("x", function (d) { return x1(new Date(d.sequence)); })
+                                    .attr("y", brushHeight + timelineHeight)
                                     .attr("transform", function (d) {
                                     if (optionMeasureResizesImage == true) {
                                         return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")";
@@ -1256,13 +1188,109 @@ var powerbi;
                                     else {
                                         return 70;
                                     }
+                                })
+                                    .attr("xlink:href", function (d) { return d.imageUrl; });
+                                timelineEvent.transition()
+                                    .attr("x", function (d) { return x1(new Date(d.sequence)); })
+                                    .attr("y", brushHeight + timelineHeight)
+                                    .attr("transform", function (d) {
+                                    if (optionMeasureResizesImage == true) {
+                                        return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")";
+                                    }
+                                    else {
+                                        return "translate(-35,-35)";
+                                    }
+                                })
+                                    .attr("height", function (d) {
+                                    if (optionMeasureResizesImage == true) {
+                                        return imageScale(d.measure);
+                                    }
+                                    else {
+                                        return 70;
+                                    }
+                                })
+                                    .attr("width", function (d) {
+                                    if (optionMeasureResizesImage == true) {
+                                        return imageScale(d.measure);
+                                    }
+                                    else {
+                                        return 70;
+                                    }
+                                })
+                                    .attr("xlink:href", function (d) { return d.imageUrl; });
+                                timelineEvent.exit().remove();
+                            }
+                            timelineEvent.on('click', function (d) {
+                                var _this = this;
+                                selectionManager.select(d.selectionId).then(function (ids) {
+                                    timelineEvent.attr({
+                                        'opacity': ids.length > 0 ? 0.2 : 1
+                                    });
+                                    d3.select(_this).attr({
+                                        'opacity': 1
+                                    });
                                 });
+                                d3.event.stopPropagation();
+                            });
+                            timelineEvent.on('mouseover', function (d) {
+                                if (timelineEvents[0].imageUrl == null) {
+                                    d3.select(this)
+                                        .attr("r", transitionRadius);
+                                }
+                                else {
+                                    d3.select(this)
+                                        .attr("transform", "translate(-70,-70)")
+                                        .attr("height", 140)
+                                        .attr("width", 140);
+                                }
+                                var mouse = d3.mouse(svg.node());
+                                var x = mouse[0];
+                                var y = mouse[1];
+                                host.tooltipService.show({
+                                    dataItems: d.tooltips,
+                                    identities: [d.selectionId],
+                                    coordinates: [x, y],
+                                    isTouchEvent: false
+                                });
+                            });
+                            timelineEvent.on('mouseout', function (d) {
+                                if (timelineEvents[0].imageUrl == null) {
+                                    d3.select(this)
+                                        .attr("r", radius);
+                                }
+                                else {
+                                    d3.select(this)
+                                        .attr("transform", function (d) {
+                                        if (optionMeasureResizesImage == true) {
+                                            return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")";
+                                        }
+                                        else {
+                                            return "translate(-35,-35)";
+                                        }
+                                    })
+                                        .attr("height", function (d) {
+                                        if (optionMeasureResizesImage == true) {
+                                            return imageScale(d.measure);
+                                        }
+                                        else {
+                                            return 70;
+                                        }
+                                    })
+                                        .attr("width", function (d) {
+                                        if (optionMeasureResizesImage == true) {
+                                            return imageScale(d.measure);
+                                        }
+                                        else {
+                                            return 70;
+                                        }
+                                    });
+                                }
                                 host.tooltipService.hide({
                                     immediately: true,
                                     isTouchEvent: false
                                 });
                             });
-                            customImages.on("mousemove", function (d) {
+                            timelineEvent.on("mousemove", function (d) {
                                 var mouse = d3.mouse(svg.node());
                                 var x = mouse[0];
                                 var y = mouse[1];
@@ -1306,8 +1334,8 @@ var powerbi;
     (function (visuals) {
         var plugins;
         (function (plugins) {
-            plugins.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE_DEBUG = {
-                name: 'timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE_DEBUG',
+            plugins.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE = {
+                name: 'timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE',
                 displayName: 'Image Timeline',
                 class: 'Visual',
                 version: '1.1.0',

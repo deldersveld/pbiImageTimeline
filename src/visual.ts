@@ -48,7 +48,7 @@ module powerbi.extensibility.visual {
     
     function visualTransform(options: VisualUpdateOptions, host: IVisualHost, optionDateDisplay: string): any {
 		let dataViews = options.dataViews;
-        console.log('visualTransform', dataViews);
+        //console.log('visualTransform', dataViews);
 		
 		let viewModel: TimelineViewModel = {
             timelineDataPoints: []
@@ -76,7 +76,7 @@ module powerbi.extensibility.visual {
 		let imageUrlIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "imageUrl");
         let measureIndex = DataRoleHelper.getMeasureIndexOfRole(grouped, "measure");
 
-        console.log(categoryIndex, sequenceIndex, imageUrlIndex, measureIndex);
+        //console.log(categoryIndex, sequenceIndex, imageUrlIndex, measureIndex);
         
         let metadata = dataViews[0].metadata;
         let categoryColumnName = metadata.columns.filter(c => c.roles["category"])[0].displayName;
@@ -199,14 +199,29 @@ module powerbi.extensibility.visual {
             let margin = [10, 75, 10, 75]; //top right bottom left
             let w = options.viewport.width - margin[1] - margin[3];
             let h = options.viewport.height - margin[0] - margin[2];
-            let brushHeight = 25;
+            let brushHeight = 30;
             let mainHeight = h - brushHeight - 10;
-            let radius = 5;
+            let radius = 7;
             let transitionRadius = radius + 5;
             let timelineHeight = 45;
 
+            //ticks
+            let tickCount = 10;
+            if(options.viewport.width > 700){
+                tickCount = options.viewport.width / 125;
+            }
+            else if(options.viewport.width > 500){
+                tickCount = options.viewport.width / 150;
+            }
+            else if(options.viewport.width > 300){
+                tickCount = options.viewport.width / 175;
+            }
+            else{
+                tickCount = options.viewport.width / 300;
+            }
+
             let viewModel: TimelineViewModel = visualTransform(options, this.host, optionDateDisplay);
-            console.log('ViewModel', viewModel);
+            //console.log('ViewModel', viewModel);
             if (!viewModel.timelineDataPoints
                 || !viewModel.timelineDataPoints[0].category
                 || !viewModel.timelineDataPoints[0].sequence){
@@ -245,6 +260,7 @@ module powerbi.extensibility.visual {
             let xAxis = d3.svg.axis()
                 .scale(x)
                 .orient("top")
+                .ticks(tickCount)
                 .tickSize(10, 0)
                 .tickFormat(d3.time.format(optionDateDisplay));
                 
@@ -331,10 +347,12 @@ module powerbi.extensibility.visual {
 
                 timelineLine.exit().remove();
 
-                //fallback to points if no image URL specified
                 main.selectAll(".point").remove();
+                main.selectAll(".custom-image").remove();
+
+                //fallback to points if no image URL specified
                 if(timelineEvents[0].imageUrl == null){
-                    let timelineEvent = itemRects.selectAll("circle")
+                    var timelineEvent = itemRects.selectAll("circle")
                         .data(timelineEvents);
                     timelineEvent.enter().append("circle")
                         .attr("class", "point")
@@ -357,107 +375,16 @@ module powerbi.extensibility.visual {
                         
                     timelineEvent.exit().remove();
                 }
-
+                
                 //custom images
-                main.selectAll(".custom-image").remove();
-                let customImages = itemRects.selectAll("image")
-                    .data(timelineEvents);
+                else{
+                    var timelineEvent = itemRects.selectAll("image")
+                        .data(timelineEvents);
 
-                customImages.enter().append("svg:image")
-                    .attr("class", "custom-image")
-                    .attr("x", function(d){return x1(new Date(d.sequence));})
-                    .attr("y", brushHeight + timelineHeight)
-                    .attr("transform", function(d) {
-                        if(optionMeasureResizesImage == true){
-                            return "translate(-" + imageScale(d.measure)/2 + ",-" + imageScale(d.measure)/2 + ")";
-                        }
-                        else{
-                            return "translate(-35,-35)"
-                        }
-                    })
-                    .attr("height", function(d) {
-                        if(optionMeasureResizesImage == true){
-                            return imageScale(d.measure);
-                        }
-                        else{
-                            return 70;
-                        }
-                    })
-                    .attr("width", function(d) {
-                        if(optionMeasureResizesImage == true){
-                            return imageScale(d.measure);
-                        }
-                        else{
-                            return 70;
-                        }
-                    })
-                    .attr("xlink:href", function(d) {return d.imageUrl});
-
-                customImages.transition()
-                    .attr("x", function(d){return x1(new Date(d.sequence));})
-                    .attr("y", brushHeight + timelineHeight)
-                    .attr("transform", function(d) {
-                        if(optionMeasureResizesImage == true){
-                            return "translate(-" + imageScale(d.measure)/2 + ",-" + imageScale(d.measure)/2 + ")";
-                        }
-                        else{
-                            return "translate(-35,-35)"
-                        }
-                    })
-                    .attr("height", function(d) {
-                        if(optionMeasureResizesImage == true){
-                            return imageScale(d.measure);
-                        }
-                        else{
-                            return 70;
-                        }
-                    })
-                    .attr("width", function(d) {
-                        if(optionMeasureResizesImage == true){
-                            return imageScale(d.measure);
-                        }
-                        else{
-                            return 70;
-                        }
-                    })
-                    .attr("xlink:href", function(d) {return d.imageUrl});
-
-                customImages.exit().remove();
-
-                customImages.on('click', function(d) {
-                    selectionManager.select(d.selectionId).then((ids: ISelectionId[]) => {
-                        customImages.attr({
-                            'opacity': ids.length > 0 ? 0.2 : 1
-                        });
-                
-                        d3.select(this).attr({
-                            'opacity': 1
-                        });
-                    });
-                
-                    (<Event>d3.event).stopPropagation();
-                });
-
-                customImages.on('mouseover', function(d) {
-                    d3.select(this)
-                        .attr("transform", "translate(-70,-70)")
-                        .attr("height", 140)
-                        .attr("width", 140);
-
-                    let mouse = d3.mouse(svg.node());
-                    let x = mouse[0];
-                    let y = mouse[1];
-
-                    host.tooltipService.show({
-                        dataItems: d.tooltips,
-                        identities: [d.selectionId],
-                        coordinates: [x, y],
-                        isTouchEvent: false
-                    });
-                });
-
-                customImages.on('mouseout', function(d) {
-                    d3.select(this)
+                    timelineEvent.enter().append("svg:image")
+                        .attr("class", "custom-image")
+                        .attr("x", function(d){return x1(new Date(d.sequence));})
+                        .attr("y", brushHeight + timelineHeight)
                         .attr("transform", function(d) {
                             if(optionMeasureResizesImage == true){
                                 return "translate(-" + imageScale(d.measure)/2 + ",-" + imageScale(d.measure)/2 + ")";
@@ -481,7 +408,111 @@ module powerbi.extensibility.visual {
                             else{
                                 return 70;
                             }
+                        })
+                        .attr("xlink:href", function(d) {return d.imageUrl});
+
+                    timelineEvent.transition()
+                        .attr("x", function(d){return x1(new Date(d.sequence));})
+                        .attr("y", brushHeight + timelineHeight)
+                        .attr("transform", function(d) {
+                            if(optionMeasureResizesImage == true){
+                                return "translate(-" + imageScale(d.measure)/2 + ",-" + imageScale(d.measure)/2 + ")";
+                            }
+                            else{
+                                return "translate(-35,-35)"
+                            }
+                        })
+                        .attr("height", function(d) {
+                            if(optionMeasureResizesImage == true){
+                                return imageScale(d.measure);
+                            }
+                            else{
+                                return 70;
+                            }
+                        })
+                        .attr("width", function(d) {
+                            if(optionMeasureResizesImage == true){
+                                return imageScale(d.measure);
+                            }
+                            else{
+                                return 70;
+                            }
+                        })
+                        .attr("xlink:href", function(d) {return d.imageUrl});
+
+                    timelineEvent.exit().remove();
+                }
+
+                timelineEvent.on('click', function(d) {
+                    selectionManager.select(d.selectionId).then((ids: ISelectionId[]) => {
+                        timelineEvent.attr({
+                            'opacity': ids.length > 0 ? 0.2 : 1
                         });
+                
+                        d3.select(this).attr({
+                            'opacity': 1
+                        });
+                    });
+                
+                    (<Event>d3.event).stopPropagation();
+                });
+
+                timelineEvent.on('mouseover', function(d) {
+                    if(timelineEvents[0].imageUrl == null){
+                        d3.select(this)
+                            .attr("r", transitionRadius);
+                    }
+                    else{
+                        d3.select(this)
+                            .attr("transform", "translate(-70,-70)")
+                            .attr("height", 140)
+                            .attr("width", 140);
+                    }
+
+                    let mouse = d3.mouse(svg.node());
+                    let x = mouse[0];
+                    let y = mouse[1];
+
+                    host.tooltipService.show({
+                        dataItems: d.tooltips,
+                        identities: [d.selectionId],
+                        coordinates: [x, y],
+                        isTouchEvent: false
+                    });
+                });
+
+                timelineEvent.on('mouseout', function(d) {
+                    if(timelineEvents[0].imageUrl == null){
+                        d3.select(this)
+                            .attr("r", radius);
+                    }
+                    else{
+                        d3.select(this)
+                            .attr("transform", function(d) {
+                                if(optionMeasureResizesImage == true){
+                                    return "translate(-" + imageScale(d.measure)/2 + ",-" + imageScale(d.measure)/2 + ")";
+                                }
+                                else{
+                                    return "translate(-35,-35)"
+                                }
+                            })
+                            .attr("height", function(d) {
+                                if(optionMeasureResizesImage == true){
+                                    return imageScale(d.measure);
+                                }
+                                else{
+                                    return 70;
+                                }
+                            })
+                            .attr("width", function(d) {
+                                if(optionMeasureResizesImage == true){
+                                    return imageScale(d.measure);
+                                }
+                                else{
+                                    return 70;
+                                }
+                            });
+                    }
 
                     host.tooltipService.hide({
                         immediately: true,
@@ -489,7 +520,7 @@ module powerbi.extensibility.visual {
                     });
                 });
 
-                customImages.on("mousemove", (d) => {
+                timelineEvent.on("mousemove", (d) => {
                     let mouse = d3.mouse(svg.node());
                     let x = mouse[0];
                     let y = mouse[1];

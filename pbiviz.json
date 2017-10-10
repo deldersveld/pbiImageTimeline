@@ -6,12 +6,12 @@
     "visualClassName": "Visual",
     "version": "1.1.0",
     "description": "Horizontal timeline that displays events with shapes or images",
-    "supportUrl": "",
-    "gitHubUrl": ""
+    "supportUrl": "https://github.com/deldersveld/pbiImageTimeline/issues",
+    "gitHubUrl": "https://github.com/deldersveld/pbiImageTimeline"
   },
   "apiVersion": "1.7.0",
   "author": {
-    "name": "David Eldersveld"
+    "name": "David Eldersveld, BlueGranite"
   },
   "assets": {
     "icon": "assets/icon.png"

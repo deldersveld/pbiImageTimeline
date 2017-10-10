@@ -65,10 +65,10 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
 		
 		let categorical = dataViews[0].categorical;
         let category = categorical.categories[0];
-		let dataValue = categorical.values[0];
-		let dataValues: DataViewValueColumns = categorical.values;
-		let grouped: DataViewValueColumnGroup[] = dataValues.grouped();
-		
+        let dataValue = categorical.values != null ? categorical.values[0] : [];
+        let dataValues: DataViewValueColumns = categorical.values != null ? categorical.values : null;
+        let grouped: DataViewValueColumnGroup[] = dataValues != null ? dataValues.grouped() : null;
+
 		let tDataPoints: TimelineDataPoint[] = [];
 		
 		let categoryIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "category");
@@ -80,7 +80,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
         
         let metadata = dataViews[0].metadata;
         let categoryColumnName = metadata.columns.filter(c => c.roles["category"])[0].displayName;
-        let valueColumnName = metadata.columns.filter(c => c.roles["measure"])[0].displayName;
+        let valueColumnName = measureIndex == -1 ? "" : metadata.columns.filter(c => c.roles["measure"])[0].displayName;
 
         let dateFormat = d3.time.format(optionDateDisplay);
         
@@ -119,14 +119,14 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
 
             //validate measure
             let measureCheck = 1;
-            measureIndex == -1 ? measureCheck = 1: measureCheck = parseFloat(categorical.values[measureIndex].values[i].toString());
+            measureIndex == -1 ? measureCheck = null : measureCheck = parseFloat(categorical.values[measureIndex].values[i].toString());
 
             //add data
             tDataPoints.push({
                 category: categorical.categories[categoryIndex].values[i].toString(),
                 sequence:  sequenceCheck,
                 imageUrl: imageCheck,
-                measure: measureCheck,
+                measure: measureCheck != null ? measureCheck : 0,
                 tooltips: [{
                                 displayName: categoryColumnName,
                                 value: categorical.categories[categoryIndex].values[i].toString(),
@@ -134,7 +134,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                             },
                             {
                                 displayName: valueColumnName,
-                                value: measureCheck.toString()
+                                value: measureCheck != null ? measureCheck.toString() : ""
                             }],
                 selectionId: host.createSelectionIdBuilder().withCategory(category, i).createSelectionId()
             });

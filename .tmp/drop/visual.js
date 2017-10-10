@@ -916,9 +916,9 @@ var powerbi;
                     }
                     var categorical = dataViews[0].categorical;
                     var category = categorical.categories[0];
-                    var dataValue = categorical.values[0];
-                    var dataValues = categorical.values;
-                    var grouped = dataValues.grouped();
+                    var dataValue = categorical.values != null ? categorical.values[0] : [];
+                    var dataValues = categorical.values != null ? categorical.values : null;
+                    var grouped = dataValues != null ? dataValues.grouped() : null;
                     var tDataPoints = [];
                     var categoryIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "category");
                     var sequenceIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "sequence");
@@ -927,7 +927,7 @@ var powerbi;
                     //console.log(categoryIndex, sequenceIndex, imageUrlIndex, measureIndex);
                     var metadata = dataViews[0].metadata;
                     var categoryColumnName = metadata.columns.filter(function (c) { return c.roles["category"]; })[0].displayName;
-                    var valueColumnName = metadata.columns.filter(function (c) { return c.roles["measure"]; })[0].displayName;
+                    var valueColumnName = measureIndex == -1 ? "" : metadata.columns.filter(function (c) { return c.roles["measure"]; })[0].displayName;
                     var dateFormat = d3.time.format(optionDateDisplay);
                     for (var i = 0, len = categorical.categories[categoryIndex].values.length; i < len; i++) {
                         var sequenceDisplay = "";
@@ -960,13 +960,13 @@ var powerbi;
                         }
                         //validate measure
                         var measureCheck = 1;
-                        measureIndex == -1 ? measureCheck = 1 : measureCheck = parseFloat(categorical.values[measureIndex].values[i].toString());
+                        measureIndex == -1 ? measureCheck = null : measureCheck = parseFloat(categorical.values[measureIndex].values[i].toString());
                         //add data
                         tDataPoints.push({
                             category: categorical.categories[categoryIndex].values[i].toString(),
                             sequence: sequenceCheck,
                             imageUrl: imageCheck,
-                            measure: measureCheck,
+                            measure: measureCheck != null ? measureCheck : 0,
                             tooltips: [{
                                     displayName: categoryColumnName,
                                     value: categorical.categories[categoryIndex].values[i].toString(),
@@ -974,7 +974,7 @@ var powerbi;
                                 },
                                 {
                                     displayName: valueColumnName,
-                                    value: measureCheck.toString()
+                                    value: measureCheck != null ? measureCheck.toString() : ""
                                 }],
                             selectionId: host.createSelectionIdBuilder().withCategory(category, i).createSelectionId()
                         });

@@ -855,6 +855,7 @@ var powerbi;
                         this.eventColor = "#01B8AA";
                         this.dateDisplay = "%Y-%m-%d";
                         this.measureResizesImage = false;
+                        this.httpsUrlOnly = false;
                     }
                     return dataPointSettings;
                 }());
@@ -899,7 +900,7 @@ var powerbi;
                 "use strict";
                 var DataRoleHelper = powerbi.extensibility.utils.dataview.DataRoleHelper;
                 ;
-                function visualTransform(options, host, optionDateDisplay) {
+                function visualTransform(options, host, optionDateDisplay, optionHttpsUrlOnly) {
                     var dataViews = options.dataViews;
                     //console.log('visualTransform', dataViews);
                     var viewModel = {
@@ -948,6 +949,9 @@ var powerbi;
                         else {
                             var imageValue = categorical.categories[imageUrlIndex].values[i];
                             if (imageValue.toString().slice(0, 5) != "http:") {
+                                imageCheck = null;
+                            }
+                            else if (optionHttpsUrlOnly == true && imageValue.toString().slice(0, 6) != "https:") {
                                 imageCheck = null;
                             }
                             else {
@@ -1010,6 +1014,7 @@ var powerbi;
                         var optionEventColor = this.settings.dataPoint.eventColor;
                         var optionDateDisplay = this.settings.dataPoint.dateDisplay;
                         var optionMeasureResizesImage = this.settings.dataPoint.measureResizesImage;
+                        var optionHttpsUrlOnly = this.settings.dataPoint.httpsUrlOnly;
                         var margin = [10, 75, 10, 75]; //top right bottom left
                         var w = options.viewport.width - margin[1] - margin[3];
                         var h = options.viewport.height - margin[0] - margin[2];
@@ -1032,7 +1037,7 @@ var powerbi;
                         else {
                             tickCount = options.viewport.width / 300;
                         }
-                        var viewModel = visualTransform(options, this.host, optionDateDisplay);
+                        var viewModel = visualTransform(options, this.host, optionDateDisplay, optionHttpsUrlOnly);
                         //console.log('ViewModel', viewModel);
                         if (!viewModel.timelineDataPoints
                             || !viewModel.timelineDataPoints[0].category
@@ -1063,7 +1068,6 @@ var powerbi;
                         var xAxis = d3.svg.axis()
                             .scale(x)
                             .orient("top")
-                            .ticks(tickCount)
                             .tickSize(10, 0)
                             .tickFormat(d3.time.format(optionDateDisplay));
                         this.axis
@@ -1348,8 +1352,8 @@ var powerbi;
     (function (visuals) {
         var plugins;
         (function (plugins) {
-            plugins.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE = {
-                name: 'timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE',
+            plugins.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE_DEBUG = {
+                name: 'timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE_DEBUG',
                 displayName: 'Image Timeline',
                 class: 'Visual',
                 version: '1.1.0',

@@ -46,7 +46,7 @@ module powerbi.extensibility.visual {
 		timelineDataPoints: TimelineDataPoint[];
     }
     
-    function visualTransform(options: VisualUpdateOptions, host: IVisualHost, optionDateDisplay: string): any {
+    function visualTransform(options: VisualUpdateOptions, host: IVisualHost, optionDateDisplay: string, optionHttpsUrlOnly: boolean): any {
 		let dataViews = options.dataViews;
         //console.log('visualTransform', dataViews);
 		
@@ -107,6 +107,9 @@ module powerbi.extensibility.visual {
             else{
                 let imageValue = categorical.categories[imageUrlIndex].values[i];
                 if(imageValue.toString().slice(0,5) != "http:"){
+                    imageCheck = null;
+                }
+                else if(optionHttpsUrlOnly == true && imageValue.toString().slice(0,6) != "https:"){
                     imageCheck = null;
                 }
                 else{
@@ -195,6 +198,7 @@ module powerbi.extensibility.visual {
             let optionEventColor = this.settings.dataPoint.eventColor;
             let optionDateDisplay = this.settings.dataPoint.dateDisplay;
             let optionMeasureResizesImage = this.settings.dataPoint.measureResizesImage;
+            let optionHttpsUrlOnly = this.settings.dataPoint.httpsUrlOnly;
 
             let margin = [10, 75, 10, 75]; //top right bottom left
             let w = options.viewport.width - margin[1] - margin[3];
@@ -220,7 +224,7 @@ module powerbi.extensibility.visual {
                 tickCount = options.viewport.width / 300;
             }
 
-            let viewModel: TimelineViewModel = visualTransform(options, this.host, optionDateDisplay);
+            let viewModel: TimelineViewModel = visualTransform(options, this.host, optionDateDisplay, optionHttpsUrlOnly);
             //console.log('ViewModel', viewModel);
             if (!viewModel.timelineDataPoints
                 || !viewModel.timelineDataPoints[0].category
@@ -260,7 +264,7 @@ module powerbi.extensibility.visual {
             let xAxis = d3.svg.axis()
                 .scale(x)
                 .orient("top")
-                .ticks(tickCount)
+                //.ticks(tickCount)
                 .tickSize(10, 0)
                 .tickFormat(d3.time.format(optionDateDisplay));
                 

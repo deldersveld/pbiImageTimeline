@@ -60,8 +60,7 @@
                             {"value": "%Y-%m-%d", "displayName": "1999-12-31"},
                             {"value": "%A", "displayName": "Friday"},
                             {"value": "%a", "displayName": "Fri"},
-                            {"value": "%H:%M %p", "displayName": "11:59 PM"},
-                            {"value": "%Y-%m-%d %H:%M %p", "displayName": "1999-12-31 11:59 PM"}
+                            {"value": "%H:%M %p", "displayName": "11:59 PM"}
                         ]
                     }
                 },

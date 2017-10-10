@@ -221,7 +221,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                 tickCount = options.viewport.width / 175;
             }
             else{
-                tickCount = options.viewport.width / 300;
+                tickCount = options.viewport.width / 200;
             }
 
             let viewModel: TimelineViewModel = visualTransform(options, this.host, optionDateDisplay, optionHttpsUrlOnly);
@@ -264,7 +264,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
             let xAxis = d3.svg.axis()
                 .scale(x)
                 .orient("top")
-                //.ticks(tickCount)
+                .ticks(tickCount)
                 .tickSize(10, 0)
                 .tickFormat(d3.time.format(optionDateDisplay));
                 
@@ -318,8 +318,10 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                 });
             brushRect.transition();
 
+            main.selectAll(".events").remove();
             let itemRects = main.append("g")
-                .attr("clip-path", "url(#clip)");
+                .attr("clip-path", "url(#clip)")
+                .attr("class", "events");
 
             draw(host);
 
@@ -555,11 +557,11 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
         }
 
         public hideAll(){
-            d3.select(".timeline").selectAll("*").style("visibility", "hidden");
+            d3.selectAll(".timeline").selectAll("*").attr("visibility", "hidden");
         }
 
         public showAll(){
-            d3.select(".timeline").selectAll("*").style("visibility", "visible");
+            d3.selectAll(".timeline").selectAll("*").attr("visibility", "visible");
         }
 
         private static parseSettings(dataView: DataView): VisualSettings {

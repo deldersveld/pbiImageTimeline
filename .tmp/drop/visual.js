@@ -1035,7 +1035,7 @@ var powerbi;
                             tickCount = options.viewport.width / 175;
                         }
                         else {
-                            tickCount = options.viewport.width / 300;
+                            tickCount = options.viewport.width / 200;
                         }
                         var viewModel = visualTransform(options, this.host, optionDateDisplay, optionHttpsUrlOnly);
                         //console.log('ViewModel', viewModel);
@@ -1068,6 +1068,7 @@ var powerbi;
                         var xAxis = d3.svg.axis()
                             .scale(x)
                             .orient("top")
+                            .ticks(tickCount)
                             .tickSize(10, 0)
                             .tickFormat(d3.time.format(optionDateDisplay));
                         this.axis
@@ -1112,8 +1113,10 @@ var powerbi;
                             "fill-opacity": "1"
                         });
                         brushRect.transition();
+                        main.selectAll(".events").remove();
                         var itemRects = main.append("g")
-                            .attr("clip-path", "url(#clip)");
+                            .attr("clip-path", "url(#clip)")
+                            .attr("class", "events");
                         draw(host);
                         function draw(host) {
                             var events;
@@ -1323,10 +1326,10 @@ var powerbi;
                         ;
                     };
                     Visual.prototype.hideAll = function () {
-                        d3.select(".timeline").selectAll("*").style("visibility", "hidden");
+                        d3.selectAll(".timeline").selectAll("*").attr("visibility", "hidden");
                     };
                     Visual.prototype.showAll = function () {
-                        d3.select(".timeline").selectAll("*").style("visibility", "visible");
+                        d3.selectAll(".timeline").selectAll("*").attr("visibility", "visible");
                     };
                     Visual.parseSettings = function (dataView) {
                         return timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE.VisualSettings.parse(dataView);

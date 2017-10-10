@@ -250,6 +250,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                 .attr("width", options.viewport.width);
 
             let svg = this.svg
+                .attr("viewBox", "0 0 " + options.viewport.width + " " + options.viewport.height + "")
                 .attr("height", options.viewport.height)
                 .attr("width", options.viewport.width);   
 
@@ -291,14 +292,6 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                 .attr("transform", "translate(" + margin[3] + "," + (margin[0] + brushHeight) + ")")
                 .attr("width", w)
                 .attr("height", mainHeight);
-
-            //height check - hide if images would be cut off on mouseover
-            if(options.viewport.height < margin[0] + brushHeight + timelineHeight * 3 - 6){
-                this.hideAll();
-            } 
-            else{
-                this.showAll();
-            }
             
 			d3.select(".brush").remove(); 
             let brush = d3.svg.brush()

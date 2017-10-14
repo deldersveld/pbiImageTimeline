@@ -899,10 +899,9 @@ var powerbi;
             (function (timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE) {
                 "use strict";
                 var DataRoleHelper = powerbi.extensibility.utils.dataview.DataRoleHelper;
-                ;
                 function visualTransform(options, host, optionDateDisplay, optionHttpsUrlOnly) {
                     var dataViews = options.dataViews;
-                    //console.log('visualTransform', dataViews);
+                    // console.log('visualTransform', dataViews);
                     var viewModel = {
                         timelineDataPoints: []
                     };
@@ -924,44 +923,44 @@ var powerbi;
                     var sequenceIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "sequence");
                     var imageUrlIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "imageUrl");
                     var measureIndex = DataRoleHelper.getMeasureIndexOfRole(grouped, "measure");
-                    //console.log(categoryIndex, sequenceIndex, imageUrlIndex, measureIndex);
+                    // console.log(categoryIndex, sequenceIndex, imageUrlIndex, measureIndex);
                     var metadata = dataViews[0].metadata;
                     var categoryColumnName = metadata.columns.filter(function (c) { return c.roles["category"]; })[0].displayName;
-                    var valueColumnName = measureIndex == -1 ? "" : metadata.columns.filter(function (c) { return c.roles["measure"]; })[0].displayName;
+                    var valueColumnName = measureIndex === -1 ? "" : metadata.columns.filter(function (c) { return c.roles["measure"]; })[0].displayName;
                     var dateFormat = d3.time.format(optionDateDisplay);
                     for (var i = 0, len = categorical.categories[categoryIndex].values.length; i < len; i++) {
                         var sequenceDisplay = "";
-                        //validate date sequence - -1 index value or bad value substitutes new Date()
+                        // validate date sequence - -1 index value or bad value substitutes new Date()
                         var sequenceCheck = new Date().toString();
                         if (sequenceIndex >= 0) {
                             var dateValidation = Date.parse(categorical.categories[sequenceIndex].values[i].toString());
-                            if (dateValidation.toString() != "NaN") {
+                            if (dateValidation.toString() !== "NaN") {
                                 sequenceCheck = categorical.categories[sequenceIndex].values[i].toString();
                                 sequenceDisplay = dateFormat(new Date(categorical.categories[sequenceIndex].values[i].toString()));
                             }
                         }
-                        //validate image URL
+                        // validate image URL
                         var imageCheck = null;
                         var validate = false;
-                        if (imageUrlIndex == -1) {
+                        if (imageUrlIndex === -1) {
                             imageCheck = null;
                         }
                         else {
                             var imageValue = categorical.categories[imageUrlIndex].values[i];
-                            if (imageValue.toString().slice(0, 5) != "http:") {
+                            if (imageValue.toString().slice(0, 5) !== "http:") {
                                 imageCheck = null;
                             }
-                            else if (optionHttpsUrlOnly == true && imageValue.toString().slice(0, 6) != "https:") {
+                            else if (optionHttpsUrlOnly === true && imageValue.toString().slice(0, 6) !== "https:") {
                                 imageCheck = null;
                             }
                             else {
                                 imageCheck = imageValue.toString();
                             }
                         }
-                        //validate measure
+                        // validate measure
                         var measureCheck = 1;
-                        measureIndex == -1 ? measureCheck = null : measureCheck = parseFloat(categorical.values[measureIndex].values[i].toString());
-                        //add data
+                        measureIndex === -1 ? measureCheck = null : measureCheck = parseFloat(categorical.values[measureIndex].values[i].toString());
+                        // add data
                         tDataPoints.push({
                             category: categorical.categories[categoryIndex].values[i].toString(),
                             sequence: sequenceCheck,
@@ -983,11 +982,9 @@ var powerbi;
                         timelineDataPoints: tDataPoints
                     };
                 }
-                function validateImageUrl(field) {
-                }
                 var Visual = (function () {
                     function Visual(options) {
-                        //console.log('Visual constructor', options);
+                        // console.log('Visual constructor', options);
                         this.target = options.element;
                         this.host = options.host;
                         this.selectionManager = options.host.createSelectionManager();
@@ -1007,7 +1004,7 @@ var powerbi;
                     }
                     Visual.prototype.update = function (options) {
                         this.settings = Visual.parseSettings(options && options.dataViews && options.dataViews[0]);
-                        //console.log('Visual update', options);
+                        // console.log('Visual update', options);
                         var selectionManager = this.selectionManager;
                         var host = this.host;
                         var optionColor = this.settings.dataPoint.defaultColor;
@@ -1015,7 +1012,7 @@ var powerbi;
                         var optionDateDisplay = this.settings.dataPoint.dateDisplay;
                         var optionMeasureResizesImage = this.settings.dataPoint.measureResizesImage;
                         var optionHttpsUrlOnly = this.settings.dataPoint.httpsUrlOnly;
-                        var margin = [10, 75, 10, 75]; //top right bottom left
+                        var margin = [10, 75, 10, 75]; // top right bottom left
                         var w = options.viewport.width - margin[1] - margin[3];
                         var h = options.viewport.height - margin[0] - margin[2];
                         var brushHeight = 35;
@@ -1023,7 +1020,7 @@ var powerbi;
                         var radius = 7;
                         var transitionRadius = radius + 5;
                         var timelineHeight = 45;
-                        //ticks
+                        // ticks
                         var tickCount = 10;
                         if (options.viewport.width > 700) {
                             tickCount = options.viewport.width / 125;
@@ -1038,7 +1035,7 @@ var powerbi;
                             tickCount = options.viewport.width / 200;
                         }
                         var viewModel = visualTransform(options, this.host, optionDateDisplay, optionHttpsUrlOnly);
-                        //console.log('ViewModel', viewModel);
+                        // console.log('ViewModel', viewModel);
                         if (!viewModel.timelineDataPoints
                             || !viewModel.timelineDataPoints[0].category
                             || !viewModel.timelineDataPoints[0].sequence) {
@@ -1046,13 +1043,13 @@ var powerbi;
                             return;
                         }
                         var sequenceMin = d3.min(viewModel.timelineDataPoints.map(function (d) { return new Date(d.sequence); }));
-                        //console.log("sequenceMin: ", sequenceMin);
+                        // console.log("sequenceMin: ", sequenceMin);
                         var sequenceMax = d3.max(viewModel.timelineDataPoints.map(function (d) { return new Date(d.sequence); }));
-                        //console.log("sequenceMax: ", sequenceMax);
+                        // console.log("sequenceMax: ", sequenceMax);
                         var measureMin = d3.min(viewModel.timelineDataPoints.map(function (d) { return d.measure; }));
-                        //console.log("measureMin: ", measureMin);
+                        // console.log("measureMin: ", measureMin);
                         var measureMax = d3.max(viewModel.timelineDataPoints.map(function (d) { return d.measure; }));
-                        //console.log("measureMax: ", measureMax);
+                        // console.log("measureMax: ", measureMax);
                         this.container
                             .attr("height", options.viewport.height)
                             .attr("width", options.viewport.width);
@@ -1135,14 +1132,15 @@ var powerbi;
                             timelineLine.exit().remove();
                             main.selectAll(".point").remove();
                             main.selectAll(".custom-image").remove();
-                            //fallback to points if no image URL specified
+                            var timelineEvent;
+                            // fallback to points if no image URL specified
                             if (timelineEvents[0].imageUrl == null) {
-                                var timelineEvent = itemRects.selectAll("circle")
+                                timelineEvent = itemRects.selectAll("circle")
                                     .data(timelineEvents);
                                 timelineEvent.enter().append("circle")
                                     .attr("class", "point")
                                     .attr("r", function (d) {
-                                    if (optionMeasureResizesImage == true) {
+                                    if (optionMeasureResizesImage) {
                                         return pointScale(d.measure);
                                     }
                                     else {
@@ -1154,7 +1152,7 @@ var powerbi;
                                     .style("fill", optionEventColor);
                                 timelineEvent.transition()
                                     .attr("r", function (d) {
-                                    if (optionMeasureResizesImage == true) {
+                                    if (optionMeasureResizesImage) {
                                         return pointScale(d.measure);
                                     }
                                     else {
@@ -1167,14 +1165,14 @@ var powerbi;
                                 timelineEvent.exit().remove();
                             }
                             else {
-                                var timelineEvent = itemRects.selectAll("image")
+                                timelineEvent = itemRects.selectAll("image")
                                     .data(timelineEvents);
                                 timelineEvent.enter().append("svg:image")
                                     .attr("class", "custom-image")
                                     .attr("x", function (d) { return x1(new Date(d.sequence)); })
                                     .attr("y", brushHeight + timelineHeight)
                                     .attr("transform", function (d) {
-                                    if (optionMeasureResizesImage == true) {
+                                    if (optionMeasureResizesImage) {
                                         return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")";
                                     }
                                     else {
@@ -1182,7 +1180,7 @@ var powerbi;
                                     }
                                 })
                                     .attr("height", function (d) {
-                                    if (optionMeasureResizesImage == true) {
+                                    if (optionMeasureResizesImage) {
                                         return imageScale(d.measure);
                                     }
                                     else {
@@ -1190,7 +1188,7 @@ var powerbi;
                                     }
                                 })
                                     .attr("width", function (d) {
-                                    if (optionMeasureResizesImage == true) {
+                                    if (optionMeasureResizesImage) {
                                         return imageScale(d.measure);
                                     }
                                     else {
@@ -1202,7 +1200,7 @@ var powerbi;
                                     .attr("x", function (d) { return x1(new Date(d.sequence)); })
                                     .attr("y", brushHeight + timelineHeight)
                                     .attr("transform", function (d) {
-                                    if (optionMeasureResizesImage == true) {
+                                    if (optionMeasureResizesImage) {
                                         return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")";
                                     }
                                     else {
@@ -1210,7 +1208,7 @@ var powerbi;
                                     }
                                 })
                                     .attr("height", function (d) {
-                                    if (optionMeasureResizesImage == true) {
+                                    if (optionMeasureResizesImage) {
                                         return imageScale(d.measure);
                                     }
                                     else {
@@ -1218,7 +1216,7 @@ var powerbi;
                                     }
                                 })
                                     .attr("width", function (d) {
-                                    if (optionMeasureResizesImage == true) {
+                                    if (optionMeasureResizesImage) {
                                         return imageScale(d.measure);
                                     }
                                     else {
@@ -1228,6 +1226,7 @@ var powerbi;
                                     .attr("xlink:href", function (d) { return d.imageUrl; });
                                 timelineEvent.exit().remove();
                             }
+                            // events
                             timelineEvent.on('click', function (d) {
                                 var _this = this;
                                 selectionManager.select(d.selectionId).then(function (ids) {
@@ -1265,7 +1264,7 @@ var powerbi;
                                 if (timelineEvents[0].imageUrl == null) {
                                     d3.select(this)
                                         .attr("r", function (d) {
-                                        if (optionMeasureResizesImage == true) {
+                                        if (optionMeasureResizesImage) {
                                             return pointScale(d.measure);
                                         }
                                         else {
@@ -1276,7 +1275,7 @@ var powerbi;
                                 else {
                                     d3.select(this)
                                         .attr("transform", function (d) {
-                                        if (optionMeasureResizesImage == true) {
+                                        if (optionMeasureResizesImage) {
                                             return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")";
                                         }
                                         else {
@@ -1284,7 +1283,7 @@ var powerbi;
                                         }
                                     })
                                         .attr("height", function (d) {
-                                        if (optionMeasureResizesImage == true) {
+                                        if (optionMeasureResizesImage) {
                                             return imageScale(d.measure);
                                         }
                                         else {
@@ -1292,7 +1291,7 @@ var powerbi;
                                         }
                                     })
                                         .attr("width", function (d) {
-                                        if (optionMeasureResizesImage == true) {
+                                        if (optionMeasureResizesImage) {
                                             return imageScale(d.measure);
                                         }
                                         else {
@@ -1317,7 +1316,6 @@ var powerbi;
                                 });
                             });
                         }
-                        ;
                     };
                     Visual.prototype.hideAll = function () {
                         d3.selectAll(".timeline").selectAll("*").attr("visibility", "hidden");
@@ -1353,7 +1351,7 @@ var powerbi;
                 name: 'timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE',
                 displayName: 'Image Timeline',
                 class: 'Visual',
-                version: '1.1.0',
+                version: '1.1.0.2',
                 apiVersion: '1.7.0',
                 create: function (options) { return new powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE.Visual(options); },
                 custom: true

@@ -34,94 +34,94 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
     import TooltipEventArgs = powerbi.extensibility.utils.tooltip.TooltipEventArgs;
 
     interface TimelineDataPoint {
-		category: string;
-		sequence: string;
-		imageUrl: string;
+        category: string;
+        sequence: string;
+        imageUrl: string;
         measure: number;
-		tooltips: VisualTooltipDataItem[];
-		selectionId: powerbi.visuals.ISelectionId;
-    };
+        tooltips: VisualTooltipDataItem[];
+        selectionId: powerbi.visuals.ISelectionId;
+    }
 
     interface TimelineViewModel {
-		timelineDataPoints: TimelineDataPoint[];
+        timelineDataPoints: TimelineDataPoint[];
     }
-    
+
     function visualTransform(options: VisualUpdateOptions, host: IVisualHost, optionDateDisplay: string, optionHttpsUrlOnly: boolean): any {
-		let dataViews = options.dataViews;
-        //console.log('visualTransform', dataViews);
-		
-		let viewModel: TimelineViewModel = {
+        let dataViews = options.dataViews;
+        // console.log('visualTransform', dataViews);
+
+        let viewModel: TimelineViewModel = {
             timelineDataPoints: []
         };
-		
-		if (!dataViews
+
+        if (!dataViews
             || !dataViews[0]
             || !dataViews[0].categorical
             || !dataViews[0].categorical.categories
-            || !dataViews[0].categorical.categories[0].source){
+            || !dataViews[0].categorical.categories[0].source) {
                 this.hideAll();
                 return viewModel;
         }
-		
-		let categorical = dataViews[0].categorical;
+
+        let categorical = dataViews[0].categorical;
         let category = categorical.categories[0];
         let dataValue = categorical.values != null ? categorical.values[0] : [];
         let dataValues: DataViewValueColumns = categorical.values != null ? categorical.values : null;
         let grouped: DataViewValueColumnGroup[] = dataValues != null ? dataValues.grouped() : null;
 
-		let tDataPoints: TimelineDataPoint[] = [];
-		
-		let categoryIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "category");
-		let sequenceIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "sequence");
-		let imageUrlIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "imageUrl");
+        let tDataPoints: TimelineDataPoint[] = [];
+
+        let categoryIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "category");
+        let sequenceIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "sequence");
+        let imageUrlIndex = DataRoleHelper.getCategoryIndexOfRole(dataViews[0].categorical.categories, "imageUrl");
         let measureIndex = DataRoleHelper.getMeasureIndexOfRole(grouped, "measure");
 
-        //console.log(categoryIndex, sequenceIndex, imageUrlIndex, measureIndex);
-        
+        // console.log(categoryIndex, sequenceIndex, imageUrlIndex, measureIndex);
+
         let metadata = dataViews[0].metadata;
         let categoryColumnName = metadata.columns.filter(c => c.roles["category"])[0].displayName;
-        let valueColumnName = measureIndex == -1 ? "" : metadata.columns.filter(c => c.roles["measure"])[0].displayName;
+        let valueColumnName = measureIndex === -1 ? "" : metadata.columns.filter(c => c.roles["measure"])[0].displayName;
 
         let dateFormat = d3.time.format(optionDateDisplay);
-        
-		for (let i = 0, len = categorical.categories[categoryIndex].values.length; i < len; i++) {
-            
+
+        for (let i = 0, len = categorical.categories[categoryIndex].values.length; i < len; i++) {
+
             let sequenceDisplay = "";
 
-            //validate date sequence - -1 index value or bad value substitutes new Date()
+            // validate date sequence - -1 index value or bad value substitutes new Date()
             let sequenceCheck = new Date().toString();
-            if(sequenceIndex >= 0){
+            if (sequenceIndex >= 0) {
                 let dateValidation = Date.parse(categorical.categories[sequenceIndex].values[i].toString());
-                if (dateValidation.toString() != "NaN"){
+                if (dateValidation.toString() !== "NaN") {
                     sequenceCheck = categorical.categories[sequenceIndex].values[i].toString();
                     sequenceDisplay = dateFormat(new Date(categorical.categories[sequenceIndex].values[i].toString()));
                 }
             }
 
-            //validate image URL
+            // validate image URL
             let imageCheck = null;
             let validate = false;
-            if(imageUrlIndex == -1){
+            if (imageUrlIndex === -1) {
                 imageCheck = null;
             }
-            else{
+            else {
                 let imageValue = categorical.categories[imageUrlIndex].values[i];
-                if(imageValue.toString().slice(0,5) != "http:"){
+                if (imageValue.toString().slice(0, 5) !== "http:") {
                     imageCheck = null;
                 }
-                else if(optionHttpsUrlOnly == true && imageValue.toString().slice(0,6) != "https:"){
+                else if (optionHttpsUrlOnly === true && imageValue.toString().slice(0, 6) !== "https:") {
                     imageCheck = null;
                 }
-                else{
+                else {
                     imageCheck = imageValue.toString();
                 }
             }
 
-            //validate measure
+            // validate measure
             let measureCheck = 1;
-            measureIndex == -1 ? measureCheck = null : measureCheck = parseFloat(categorical.values[measureIndex].values[i].toString());
+            measureIndex === -1 ? measureCheck = null : measureCheck = parseFloat(categorical.values[measureIndex].values[i].toString());
 
-            //add data
+            // add data
             tDataPoints.push({
                 category: categorical.categories[categoryIndex].values[i].toString(),
                 sequence:  sequenceCheck,
@@ -138,16 +138,12 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                             }],
                 selectionId: host.createSelectionIdBuilder().withCategory(category, i).createSelectionId()
             });
-            
+
         }
-		
-		return {
+
+        return {
             timelineDataPoints: tDataPoints
         };
-    }
-    
-    function validateImageUrl(field){
-        
     }
 
     export class Visual implements IVisual {
@@ -162,7 +158,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
         private selectionManager: ISelectionManager;
 
         constructor(options: VisualConstructorOptions) {
-            //console.log('Visual constructor', options);
+            // console.log('Visual constructor', options);
             this.target = options.element;
             this.host = options.host;
             this.selectionManager = options.host.createSelectionManager();
@@ -181,15 +177,15 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
             let main = this.main = this.svg
                 .append("g")
                 .attr("class", "main");
-                
+
             let axis = this.axis = main.append("g")
                 .attr("class", "axis");
-            
+
         }
 
         public update(options: VisualUpdateOptions) {
             this.settings = Visual.parseSettings(options && options.dataViews && options.dataViews[0]);
-            //console.log('Visual update', options);
+            // console.log('Visual update', options);
 
             let selectionManager = this.selectionManager;
             let host = this.host;
@@ -200,7 +196,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
             let optionMeasureResizesImage = this.settings.dataPoint.measureResizesImage;
             let optionHttpsUrlOnly = this.settings.dataPoint.httpsUrlOnly;
 
-            let margin = [10, 75, 10, 75]; //top right bottom left
+            let margin = [10, 75, 10, 75]; // top right bottom left
             let w = options.viewport.width - margin[1] - margin[3];
             let h = options.viewport.height - margin[0] - margin[2];
             let brushHeight = 35;
@@ -209,41 +205,41 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
             let transitionRadius = radius + 5;
             let timelineHeight = 45;
 
-            //ticks
+            // ticks
             let tickCount = 10;
-            if(options.viewport.width > 700){
+            if (options.viewport.width > 700) {
                 tickCount = options.viewport.width / 125;
             }
-            else if(options.viewport.width > 500){
+            else if (options.viewport.width > 500) {
                 tickCount = options.viewport.width / 150;
             }
-            else if(options.viewport.width > 300){
+            else if (options.viewport.width > 300) {
                 tickCount = options.viewport.width / 175;
             }
-            else{
+            else {
                 tickCount = options.viewport.width / 200;
             }
 
             let viewModel: TimelineViewModel = visualTransform(options, this.host, optionDateDisplay, optionHttpsUrlOnly);
-            //console.log('ViewModel', viewModel);
+            // console.log('ViewModel', viewModel);
             if (!viewModel.timelineDataPoints
                 || !viewModel.timelineDataPoints[0].category
-                || !viewModel.timelineDataPoints[0].sequence){
+                || !viewModel.timelineDataPoints[0].sequence) {
                 console.log("missing data");
                 return;
             }
-            
-            let sequenceMin = d3.min(viewModel.timelineDataPoints.map(d=>new Date(d.sequence)));
-			//console.log("sequenceMin: ", sequenceMin);
-			
-            let sequenceMax = d3.max(viewModel.timelineDataPoints.map(d=>new Date(d.sequence)));
-            //console.log("sequenceMax: ", sequenceMax);
 
-            let measureMin = d3.min(viewModel.timelineDataPoints.map(d=>d.measure));
-            //console.log("measureMin: ", measureMin);
+            let sequenceMin = d3.min(viewModel.timelineDataPoints.map(d => new Date(d.sequence)));
+            // console.log("sequenceMin: ", sequenceMin);
 
-            let measureMax = d3.max(viewModel.timelineDataPoints.map(d=>d.measure));
-            //console.log("measureMax: ", measureMax);
+            let sequenceMax = d3.max(viewModel.timelineDataPoints.map(d => new Date(d.sequence)));
+            // console.log("sequenceMax: ", sequenceMax);
+
+            let measureMin = d3.min(viewModel.timelineDataPoints.map(d => d.measure));
+            // console.log("measureMin: ", measureMin);
+
+            let measureMax = d3.max(viewModel.timelineDataPoints.map(d => d.measure));
+            // console.log("measureMax: ", measureMax);
 
             this.container
                 .attr("height", options.viewport.height)
@@ -252,14 +248,14 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
             let svg = this.svg
                 .attr("viewBox", "0 0 " + options.viewport.width + " " + options.viewport.height + "")
                 .attr("height", options.viewport.height)
-                .attr("width", options.viewport.width);   
+                .attr("width", options.viewport.width);
 
             let x = d3.time.scale()
                 .domain([sequenceMin, sequenceMax])
                 .range([0, w]);
 
             let x1 = d3.time.scale()
-				.domain([sequenceMin, sequenceMax])
+                .domain([sequenceMin, sequenceMax])
                 .range([0, w]);
 
             let xAxis = d3.svg.axis()
@@ -268,9 +264,9 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                 .ticks(tickCount)
                 .tickSize(10, 0)
                 .tickFormat(d3.time.format(optionDateDisplay));
-                
+
             this.axis
-				.attr("class", "axis")
+                .attr("class", "axis")
                 .call(xAxis);
 
             let imageScale = d3.scale.linear()
@@ -292,12 +288,12 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                 .attr("transform", "translate(" + margin[3] + "," + (margin[0] + brushHeight) + ")")
                 .attr("width", w)
                 .attr("height", mainHeight);
-            
-			d3.select(".brush").remove(); 
+
+            d3.select(".brush").remove();
             let brush = d3.svg.brush()
                 .x(<any>x)
                 .extent(<any>[sequenceMin, sequenceMax])
-                .on("brush", function(){draw(host)});
+                .on("brush", function(){draw(host); });
 
             let brushRect = brushArea.append("g")
                 .attr("class", "brush")
@@ -332,14 +328,14 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                 main.selectAll(".timelineLine").remove();
                 let timelineLine = itemRects.selectAll(".timelineLine")
                     .data([1]);
-            
+
                 timelineLine.enter().append("svg:line")
                     .attr("class", "timelineLine")
                     .attr("x1", x1(sequenceMin))
                     .attr("y1", brushHeight + timelineHeight)
                     .attr("x2", x1(sequenceMax))
                     .attr("y2", brushHeight + timelineHeight);
-                
+
                 timelineLine.transition()
                     .attr("x1", x1(sequenceMin))
                     .attr("x2", x1(sequenceMax));
@@ -349,126 +345,128 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                 main.selectAll(".point").remove();
                 main.selectAll(".custom-image").remove();
 
-                //fallback to points if no image URL specified
-                if(timelineEvents[0].imageUrl == null){
-                    var timelineEvent = itemRects.selectAll("circle")
+                let timelineEvent: any;
+                // fallback to points if no image URL specified
+                if (timelineEvents[0].imageUrl == null) {
+                    timelineEvent = itemRects.selectAll("circle")
                         .data(timelineEvents);
                     timelineEvent.enter().append("circle")
                         .attr("class", "point")
                         .attr("r", function(d) {
-                            if(optionMeasureResizesImage == true){
+                            if (optionMeasureResizesImage) {
                                 return pointScale(d.measure);
                             }
-                            else{
+                            else {
                                 return transitionRadius;
                             }
                         })
-                        .attr("cx", function(d){return x1(new Date(d.sequence));})
+                        .attr("cx", function(d){return x1(new Date(d.sequence)); })
                         .attr("cy", brushHeight + timelineHeight)
                         .style("fill", optionEventColor);
                     timelineEvent.transition()
                         .attr("r", function(d) {
-                            if(optionMeasureResizesImage == true){
+                            if (optionMeasureResizesImage) {
                                 return pointScale(d.measure);
                             }
-                            else{
+                            else {
                                 return radius;
                             }
                         })
-                        .attr("cx", function(d){return x1(new Date(d.sequence));})
+                        .attr("cx", function(d){return x1(new Date(d.sequence)); })
                         .attr("cy", brushHeight + timelineHeight)
                         .style("fill", optionEventColor);
-                        
+
                     timelineEvent.exit().remove();
                 }
-                
-                //custom images
-                else{
-                    var timelineEvent = itemRects.selectAll("image")
+
+                // custom images
+                else {
+                    timelineEvent = itemRects.selectAll("image")
                         .data(timelineEvents);
 
                     timelineEvent.enter().append("svg:image")
                         .attr("class", "custom-image")
-                        .attr("x", function(d){return x1(new Date(d.sequence));})
+                        .attr("x", function(d){return x1(new Date(d.sequence)); })
                         .attr("y", brushHeight + timelineHeight)
                         .attr("transform", function(d) {
-                            if(optionMeasureResizesImage == true){
-                                return "translate(-" + imageScale(d.measure)/2 + ",-" + imageScale(d.measure)/2 + ")";
+                            if (optionMeasureResizesImage) {
+                                return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")";
                             }
-                            else{
-                                return "translate(-35,-35)"
+                            else {
+                                return "translate(-35,-35)";
                             }
                         })
                         .attr("height", function(d) {
-                            if(optionMeasureResizesImage == true){
+                            if (optionMeasureResizesImage) {
                                 return imageScale(d.measure);
                             }
-                            else{
+                            else {
                                 return 70;
                             }
                         })
                         .attr("width", function(d) {
-                            if(optionMeasureResizesImage == true){
+                            if (optionMeasureResizesImage) {
                                 return imageScale(d.measure);
                             }
-                            else{
+                            else {
                                 return 70;
                             }
                         })
-                        .attr("xlink:href", function(d) {return d.imageUrl});
+                        .attr("xlink:href", function(d) {return d.imageUrl; });
 
                     timelineEvent.transition()
-                        .attr("x", function(d){return x1(new Date(d.sequence));})
+                        .attr("x", function(d){return x1(new Date(d.sequence)); })
                         .attr("y", brushHeight + timelineHeight)
                         .attr("transform", function(d) {
-                            if(optionMeasureResizesImage == true){
-                                return "translate(-" + imageScale(d.measure)/2 + ",-" + imageScale(d.measure)/2 + ")";
+                            if (optionMeasureResizesImage) {
+                                return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")";
                             }
-                            else{
-                                return "translate(-35,-35)"
+                            else {
+                                return "translate(-35,-35)";
                             }
                         })
                         .attr("height", function(d) {
-                            if(optionMeasureResizesImage == true){
+                            if (optionMeasureResizesImage) {
                                 return imageScale(d.measure);
                             }
-                            else{
+                            else {
                                 return 70;
                             }
                         })
                         .attr("width", function(d) {
-                            if(optionMeasureResizesImage == true){
+                            if (optionMeasureResizesImage) {
                                 return imageScale(d.measure);
                             }
-                            else{
+                            else {
                                 return 70;
                             }
                         })
-                        .attr("xlink:href", function(d) {return d.imageUrl});
+                        .attr("xlink:href", function(d) {return d.imageUrl; });
 
                     timelineEvent.exit().remove();
                 }
 
+                // events
                 timelineEvent.on('click', function(d) {
                     selectionManager.select(d.selectionId).then((ids: ISelectionId[]) => {
                         timelineEvent.attr({
                             'opacity': ids.length > 0 ? 0.2 : 1
                         });
-                
+
                         d3.select(this).attr({
                             'opacity': 1
                         });
                     });
-                
+
                     (<Event>d3.event).stopPropagation();
                 });
 
                 timelineEvent.on('mouseover', function(d) {
-                    if(timelineEvents[0].imageUrl == null){
+                    if (timelineEvents[0].imageUrl == null) {
                         d3.select(this)
                             .attr("r", transitionRadius);
                     }
-                    else{
+                    else {
                         d3.select(this)
                             .attr("transform", "translate(-70,-70)")
                             .attr("height", 140)
@@ -488,40 +486,40 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                 });
 
                 timelineEvent.on('mouseout', function(d) {
-                    if(timelineEvents[0].imageUrl == null){
+                    if (timelineEvents[0].imageUrl == null) {
                         d3.select(this)
                             .attr("r", function(d) {
-                                if(optionMeasureResizesImage == true){
+                                if (optionMeasureResizesImage) {
                                     return pointScale(d.measure);
                                 }
-                                else{
+                                else {
                                     return radius;
                                 }
                             });
                     }
-                    else{
+                    else {
                         d3.select(this)
                             .attr("transform", function(d) {
-                                if(optionMeasureResizesImage == true){
-                                    return "translate(-" + imageScale(d.measure)/2 + ",-" + imageScale(d.measure)/2 + ")";
+                                if (optionMeasureResizesImage) {
+                                    return "translate(-" + imageScale(d.measure) / 2 + ",-" + imageScale(d.measure) / 2 + ")";
                                 }
-                                else{
-                                    return "translate(-35,-35)"
+                                else {
+                                    return "translate(-35,-35)";
                                 }
                             })
                             .attr("height", function(d) {
-                                if(optionMeasureResizesImage == true){
+                                if (optionMeasureResizesImage) {
                                     return imageScale(d.measure);
                                 }
-                                else{
+                                else {
                                     return 70;
                                 }
                             })
                             .attr("width", function(d) {
-                                if(optionMeasureResizesImage == true){
+                                if (optionMeasureResizesImage) {
                                     return imageScale(d.measure);
                                 }
-                                else{
+                                else {
                                     return 70;
                                 }
                             });
@@ -544,16 +542,16 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                         coordinates: [x, y],
                         isTouchEvent: false
                     });
-                })
+                });
 
-            };
+            }
         }
 
-        public hideAll(){
+        public hideAll() {
             d3.selectAll(".timeline").selectAll("*").attr("visibility", "hidden");
         }
 
-        public showAll(){
+        public showAll() {
             d3.selectAll(".timeline").selectAll("*").attr("visibility", "visible");
         }
 
@@ -561,10 +559,10 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
             return VisualSettings.parse(dataView) as VisualSettings;
         }
 
-        /** 
-         * This function gets called for each of the objects defined in the capabilities files and allows you to select which of the 
+        /**
+         * This function gets called for each of the objects defined in the capabilities files and allows you to select which of the
          * objects and properties you want to expose to the users in the property pane.
-         * 
+         *
          */
         public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstance[] | VisualObjectInstanceEnumerationObject {
             return VisualSettings.enumerateObjectInstances(this.settings || VisualSettings.getDefault(), options);

@@ -10,8 +10,8 @@ The Image Timeline is a custom visual for Microsoft Power BI that displays event
 ![](https://raw.githubusercontent.com/deldersveld/pbiImageTimeline/master/assets/timeline-measure-resizes.PNG)
 
 ## Download
-The Image Timeline is currently in the process of being submitted to the Office Store / AppSource.  
-In the meantime, you can obtain it directly in preview from the [dist](https://github.com/deldersveld/pbiImageTimeline/tree/master/dist) folder in this GitHub repository (ImageTimeline-[version].pbiviz).
+The Image Timeline is available for Power BI using the "Import from Store" option, or it can be downloaded directly from AppSource.  
+You can obtain preview versions directly from the [dist](https://github.com/deldersveld/pbiImageTimeline/tree/master/dist) folder in this GitHub repository (ImageTimeline-[version].pbiviz).
 
 ## Functionality  
 - *Date brush* - Interactively adjust the date range using the "brush" at the top of the visual. Drag the left side of the brush to alter the start date and the right side to alter the end date. Once you have a smaller range, you can also drag the center of the brush to move along the timeline.

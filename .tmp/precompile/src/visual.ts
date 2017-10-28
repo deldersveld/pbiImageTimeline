@@ -46,7 +46,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
         timelineDataPoints: TimelineDataPoint[];
     }
 
-    function visualTransform(options: VisualUpdateOptions, host: IVisualHost, optionDateDisplay: string, optionHttpsUrlOnly: boolean): any {
+    function visualTransform(options: VisualUpdateOptions, host: IVisualHost, optionDateDisplay: string): any {
         let dataViews = options.dataViews;
         // console.log('visualTransform', dataViews);
 
@@ -98,6 +98,8 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                 }
             }
 
+            console.log(imageUrlIndex);
+
             // validate image URL
             let imageCheck = null;
             let validate = false;
@@ -106,10 +108,8 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
             }
             else {
                 let imageValue = categorical.categories[imageUrlIndex].values[i];
-                if (imageValue.toString().slice(0, 5) !== "http:") {
-                    imageCheck = null;
-                }
-                else if (optionHttpsUrlOnly === true && imageValue.toString().slice(0, 6) !== "https:") {
+                if (!/^(ftp|http|https):\/\/[^ "]+$/.test(imageValue.toString()) &&
+                    !/^data:image/.test(imageValue.toString())) {
                     imageCheck = null;
                 }
                 else {
@@ -194,7 +194,6 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
             let optionEventColor = this.settings.dataPoint.eventColor;
             let optionDateDisplay = this.settings.dataPoint.dateDisplay;
             let optionMeasureResizesImage = this.settings.dataPoint.measureResizesImage;
-            let optionHttpsUrlOnly = this.settings.dataPoint.httpsUrlOnly;
 
             let margin = [10, 75, 10, 75]; // top right bottom left
             let w = options.viewport.width - margin[1] - margin[3];
@@ -220,7 +219,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                 tickCount = options.viewport.width / 200;
             }
 
-            let viewModel: TimelineViewModel = visualTransform(options, this.host, optionDateDisplay, optionHttpsUrlOnly);
+            let viewModel: TimelineViewModel = visualTransform(options, this.host, optionDateDisplay);
             // console.log('ViewModel', viewModel);
             if (!viewModel.timelineDataPoints
                 || !viewModel.timelineDataPoints[0].category
@@ -319,6 +318,7 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
                 let minExtent = new Date(brush.extent()[0]);
                 let maxExtent = new Date(brush.extent()[1]);
                 let timelineEvents = viewModel.timelineDataPoints.filter(function (d) { return new Date(d.sequence) <= maxExtent && new Date(d.sequence) >= minExtent; });
+                console.log(timelineEvents);
 
                 brushArea.select(".brush")
                     .call(brush.extent(<any>[new Date(minExtent), new Date(maxExtent)]));

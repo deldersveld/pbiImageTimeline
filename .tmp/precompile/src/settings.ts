@@ -37,7 +37,6 @@ module powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE  {
       public eventColor: string = "#01B8AA";
       public dateDisplay: string = "%Y-%m-%d";
       public measureResizesImage: boolean = false;
-      public httpsUrlOnly: boolean = false;
      }
 
 }

@@ -69,12 +69,6 @@
                     "type": {
                         "bool": true
                     }
-                },
-                "httpsUrlOnly": {
-                    "displayName": "Require HTTPS image links",
-                    "type": {
-                        "bool": true
-                    }
                 }
             }
         }

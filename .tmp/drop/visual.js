@@ -855,7 +855,6 @@ var powerbi;
                         this.eventColor = "#01B8AA";
                         this.dateDisplay = "%Y-%m-%d";
                         this.measureResizesImage = false;
-                        this.httpsUrlOnly = false;
                     }
                     return dataPointSettings;
                 }());
@@ -899,7 +898,7 @@ var powerbi;
             (function (timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE) {
                 "use strict";
                 var DataRoleHelper = powerbi.extensibility.utils.dataview.DataRoleHelper;
-                function visualTransform(options, host, optionDateDisplay, optionHttpsUrlOnly) {
+                function visualTransform(options, host, optionDateDisplay) {
                     var dataViews = options.dataViews;
                     // console.log('visualTransform', dataViews);
                     var viewModel = {
@@ -939,6 +938,7 @@ var powerbi;
                                 sequenceDisplay = dateFormat(new Date(categorical.categories[sequenceIndex].values[i].toString()));
                             }
                         }
+                        console.log(imageUrlIndex);
                         // validate image URL
                         var imageCheck = null;
                         var validate = false;
@@ -947,10 +947,8 @@ var powerbi;
                         }
                         else {
                             var imageValue = categorical.categories[imageUrlIndex].values[i];
-                            if (imageValue.toString().slice(0, 5) !== "http:") {
-                                imageCheck = null;
-                            }
-                            else if (optionHttpsUrlOnly === true && imageValue.toString().slice(0, 6) !== "https:") {
+                            if (!/^(ftp|http|https):\/\/[^ "]+$/.test(imageValue.toString()) &&
+                                !/^data:image/.test(imageValue.toString())) {
                                 imageCheck = null;
                             }
                             else {
@@ -1011,7 +1009,6 @@ var powerbi;
                         var optionEventColor = this.settings.dataPoint.eventColor;
                         var optionDateDisplay = this.settings.dataPoint.dateDisplay;
                         var optionMeasureResizesImage = this.settings.dataPoint.measureResizesImage;
-                        var optionHttpsUrlOnly = this.settings.dataPoint.httpsUrlOnly;
                         var margin = [10, 75, 10, 75]; // top right bottom left
                         var w = options.viewport.width - margin[1] - margin[3];
                         var h = options.viewport.height - margin[0] - margin[2];
@@ -1034,7 +1031,7 @@ var powerbi;
                         else {
                             tickCount = options.viewport.width / 200;
                         }
-                        var viewModel = visualTransform(options, this.host, optionDateDisplay, optionHttpsUrlOnly);
+                        var viewModel = visualTransform(options, this.host, optionDateDisplay);
                         // console.log('ViewModel', viewModel);
                         if (!viewModel.timelineDataPoints
                             || !viewModel.timelineDataPoints[0].category
@@ -1114,6 +1111,7 @@ var powerbi;
                             var minExtent = new Date(brush.extent()[0]);
                             var maxExtent = new Date(brush.extent()[1]);
                             var timelineEvents = viewModel.timelineDataPoints.filter(function (d) { return new Date(d.sequence) <= maxExtent && new Date(d.sequence) >= minExtent; });
+                            console.log(timelineEvents);
                             brushArea.select(".brush")
                                 .call(brush.extent([new Date(minExtent), new Date(maxExtent)]));
                             x1.domain([minExtent, maxExtent]);
@@ -1347,11 +1345,11 @@ var powerbi;
     (function (visuals) {
         var plugins;
         (function (plugins) {
-            plugins.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE_DEBUG = {
-                name: 'timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE_DEBUG',
+            plugins.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE = {
+                name: 'timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE',
                 displayName: 'Image Timeline',
                 class: 'Visual',
-                version: '1.1.0.2',
+                version: '1.1.1.0',
                 apiVersion: '1.7.0',
                 create: function (options) { return new powerbi.extensibility.visual.timeline1E0B9DD0A83A4E79BB5F9DE15C7690AE.Visual(options); },
                 custom: true
